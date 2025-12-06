@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { isAuthenticated } from "@/api/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,8 +34,20 @@ const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost">Log in</Button>
-            <Button variant="hero">Get Started</Button>
+            {isAuthenticated() ? (
+              <Link to="/dashboard">
+                <Button variant="hero">Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth/login">
+                  <Button variant="ghost">Log in</Button>
+                </Link>
+                <Link to="/auth/register">
+                  <Button variant="hero">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -59,8 +73,20 @@ const Navbar = () => {
                 Meetings
               </a>
               <div className="flex flex-col gap-2 pt-4">
-                <Button variant="ghost" className="w-full">Log in</Button>
-                <Button variant="hero" className="w-full">Get Started</Button>
+                {isAuthenticated() ? (
+                  <Link to="/dashboard">
+                    <Button variant="hero" className="w-full">Dashboard</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/auth/login">
+                      <Button variant="ghost" className="w-full">Log in</Button>
+                    </Link>
+                    <Link to="/auth/register">
+                      <Button variant="hero" className="w-full">Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
