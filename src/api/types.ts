@@ -54,11 +54,24 @@ export interface PasswordResetConfirm {
 }
 
 // Meeting Types
+// Internal UI contract for starting a single meeting from a URL
 export interface MeetingStartRequest {
   meeting_url: string;
   duration?: number;
 }
 
+// Backend API contract for launching one or more meetings
+export interface MeetingsLaunchRequest {
+  meetings: string[];
+  duration_min?: number | null;
+}
+
+export interface MeetingsLaunchResponse {
+  created: string[];
+  count: number;
+}
+
+// Normalized response the UI uses after launching a meeting
 export interface MeetingResponse {
   message: string;
   meeting_id: string;

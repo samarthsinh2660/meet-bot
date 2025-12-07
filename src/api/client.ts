@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // API Base URL from environment variable
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'skriber_access_token';
