@@ -1,0 +1,150 @@
+# Skriber Frontend - API Status & Implementation Notes
+
+**Last Updated:** December 12, 2025
+
+---
+
+## ⚠️ CURRENT BACKEND STATUS
+
+All new recordings endpoints are now deployed and working:
+
+- `POST /api/v1/meetings/launch`
+- `GET /api/v1/recordings`
+- `GET /api/v1/recordings/{recording_id}`
+- `GET /api/v1/recordings/stats`
+- `GET /api/v1/transcripts/{recording_id}`
+- `DELETE /api/v1/recordings/{recording_id}`
+
+---
+
+## ✅ WORKING ENDPOINTS
+
+### Authentication (Working)
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/token` - Login (form-urlencoded)
+- `GET /api/v1/auth/me` - Get current user
+- `POST /api/v1/auth/refresh` - Refresh token
+- `POST /api/v1/auth/change-password` - Change password
+- `POST /api/v1/auth/forgot-password` - Request password reset
+- `POST /api/v1/auth/reset-password` - Reset password with token
+- `GET /api/v1/auth/google/login` - Google OAuth (NOT CONFIGURED)
+
+### Meetings Launch (Working ✅)
+- `POST /api/v1/meetings/launch` - Launch meeting recording(s)
+  ```json
+  Request: { "meetings": ["url1", "url2", ...], "duration_min": 60, "record": true }
+  Response: { "created": [...], "count": 1, "db_status": "ok", "recordings": [...] }
+  ```
+  **Supports multiple meeting URLs in a single request!**
+
+---
+
+## ❌ NOT YET DEPLOYED (Returning 404)
+
+For the recordings API, **none**. All of the endpoints listed above are now live and returning 2xx when called correctly.
+
+---
+
+## ⚠️ OLD ENDPOINTS (No Longer Working - 404)
+
+These endpoints from the old API are returning 404:
+- ❌ `POST /api/v1/meeting-bot/meeting-url` - REMOVED
+- ❌ `GET /api/v1/meeting-bot/my-meetings` - REMOVED
+- ❌ `POST /api/v1/meeting-bot/meeting/{id}/pause` - REMOVED
+- ❌ `POST /api/v1/meeting-bot/meeting/{id}/resume` - REMOVED
+- ❌ `POST /api/v1/meeting-bot/meeting/{id}/stop` - REMOVED
+
+---
+
+## ✅ FRONTEND UPDATES COMPLETED
+
+### 1. API Layer (`src/api/`)
+- **types.ts** - Added new types:
+  - `LaunchMeetingRequest`, `LaunchMeetingResponse`
+  - `Recording`, `RecordingsListResponse`, `RecordingDetail`
+  - `TranscriptSegment`, `TranscriptResponse`
+  - `RecordingStats`, `RecordingsFilterParams`
+
+- **meetings.ts** - Renamed to `recordingsApi` with new endpoints:
+  - `launchMeeting()` - POST /api/v1/meetings/launch
+  - `getRecordings()` - GET /api/v1/recordings (with filters)
+  - `getRecording()` - GET /api/v1/recordings/{id}
+  - `getTranscript()` - GET /api/v1/transcripts/{id}
+  - `getStats()` - GET /api/v1/recordings/stats
+  - `deleteRecording()` - DELETE /api/v1/recordings/{id}
+
+### 2. Hooks (`src/hooks/useMeetings.ts`)
+- `useRecordings()` - Fetch recordings list with filters
+- `useRecording()` - Fetch single recording with polling for processing status
+- `useTranscript()` - Fetch transcript data
+- `useRecordingStats()` - Fetch stats
+- `useLaunchMeeting()` - Launch new recording
+- `useDeleteRecording()` - Delete recording
+- Legacy aliases maintained for backward compatibility
+
+### 3. Pages Updated
+- **Dashboard.tsx** - Uses new stats API, shows processing recordings
+- **Meetings.tsx** - Uses recordings list, date filters (client-side), delete action
+- **MeetingDetail.tsx** - Renamed to RecordingDetail, shows video player & transcript
+- **NewMeeting.tsx** - Uses launchMeeting hook
+
+### 4. Routes (`App.tsx`)
+- Added `/dashboard/recordings/:id` route
+
+---
+
+## 🎯 FEATURES NOW AVAILABLE
+
+1. ✅ **Launch Recording** - Deploy bot to record meetings
+2. ✅ **List Recordings** - View all recordings with filters
+3. ✅ **Recording Detail** - View recording info, video, transcript
+4. ✅ **Video Playback** - HTML5 video player when video_url available
+5. ✅ **Transcript Display** - Show transcript segments with timestamps
+6. ✅ **Transcript Search** - Client-side search within transcript
+7. ✅ **Delete Recording** - Remove recordings
+8. ✅ **Statistics** - Dashboard shows total, completed, duration stats
+9. ✅ **Date Filtering** - Filter by today, week, month, custom range
+
+---
+
+## ❌ STILL MISSING / NOT WORKING
+
+### Backend Issues
+1. **Google OAuth** - Not configured on backend
+2. **Pause/Resume/Stop** - Old endpoints removed, no replacement in new API
+
+### Features Not Yet Available
+1. **Transcript Export** - Need download endpoint with format options
+2. **Video Download** - Direct download button (can use video_url for now)
+3. **Meeting Sharing** - No share endpoints
+4. **User Profile Update** - No PATCH /users/me endpoint
+5. **Real-time Notifications** - No WebSocket support
+
+---
+
+## 📋 RECOMMENDED NEXT STEPS
+
+### Backend Team
+1. Add transcript export endpoint (txt, srt, vtt formats)
+2. Configure Google OAuth environment variables
+3. Consider adding pause/resume functionality back if needed
+4. Add user profile update endpoint
+
+### Frontend Team
+1. Add transcript export button when backend ready
+2. Implement Google OAuth flow when configured
+3. Add better error handling for API failures
+4. Consider adding video.js for better video player controls
+
+---
+
+## 💡 FUTURE ENHANCEMENTS
+
+1. **AI Summary** - Auto-generate meeting summary
+2. **Action Items** - Extract action items from transcript
+3. **Speaker Diarization** - Identify speakers
+4. **Highlights/Clips** - Create clips from recordings
+5. **Calendar Integration** - Auto-schedule recordings
+6. **Slack/Teams Integration** - Notifications
+7. **Bulk Operations** - Multi-select delete/export
+8. **Folders** - Organize recordings into projects

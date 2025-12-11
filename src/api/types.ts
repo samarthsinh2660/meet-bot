@@ -53,62 +53,115 @@ export interface PasswordResetConfirm {
   new_password: string;
 }
 
-// Meeting Types
-// Internal UI contract for starting a single meeting from a URL
-export interface MeetingStartRequest {
-  meeting_url: string;
-  duration?: number;
-}
+// ============================================
+// Recording & Meeting Types (New API)
+// ============================================
 
-// Backend API contract for launching one or more meetings
-export interface MeetingsLaunchRequest {
+// Launch meeting request
+export interface LaunchMeetingRequest {
   meetings: string[];
-  duration_min?: number | null;
+  duration_min: number;
+  record?: boolean;
 }
 
-export interface MeetingsLaunchResponse {
+// Launch meeting response
+export interface LaunchMeetingResponse {
   created: string[];
   count: number;
+  db_status: string;
+  recordings: LaunchedRecording[];
 }
 
-// Normalized response the UI uses after launching a meeting
-export interface MeetingResponse {
-  message: string;
-  meeting_id: string;
-  container_id?: string | null;
-  port?: number | null;
-  status?: string | null;
+export interface LaunchedRecording {
+  job_name: string;
+  recording_id: string;
+  gcs_video_uri: string;
 }
 
-export interface MeetingStatusResponse {
+// Transcript segment
+export interface TranscriptSegment {
+  speaker: string;
+  text: string;
+  start_time: number;
+  end_time: number;
+}
+
+// Transcript response
+export interface TranscriptResponse {
   id: string;
-  user_id: string;
-  meeting_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  transcript: TranscriptSegment[];
+  created_at: string;
+  completed_at?: string;
+}
+
+// Recording item in list
+export interface Recording {
+  id: string;
   meeting_url: string;
-  meeting_duration?: number | null;
-  actual_duration?: number | null;
-  container_id?: string | null;
-  port?: number | null;
+  duration_minutes: number;
+  video_url?: string;
   status: string;
-  bot_logs?: string | null;
-  meeting_created_at: string;
-  meeting_started_at?: string | null;
-  meeting_ended_at?: string | null;
-  meeting_updated_at: string;
+  has_transcript: boolean;
+  created_at: string;
+  completed_at?: string;
 }
 
-export interface K8sMeetingRequest {
-  meetingId: string;
-  duration?: number;
-  uuid?: string | null;
-  recordType?: string | null;
+// Recordings list response
+export interface RecordingsListResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  recordings: Recording[];
 }
 
-export interface BatchRequest {
-  count?: number;
-  baseMeetingId: string;
-  duration?: number;
-  recordType?: string | null;
+// Recording detail with transcript
+export interface RecordingDetail {
+  id: string;
+  meeting_url: string;
+  duration_minutes: number;
+  video_url?: string;
+  status: string;
+  created_at: string;
+  completed_at?: string;
+  transcript?: {
+    id: string;
+    status: string;
+    segments: TranscriptSegment[];
+  };
+}
+
+// Recording stats
+export interface RecordingStats {
+  total_recordings: number;
+  total_duration_minutes: number;
+  completed_recordings: number;
+  failed_recordings: number;
+  recordings_by_month: MonthlyStats[];
+}
+
+export interface MonthlyStats {
+  month: string;
+  count: number;
+  duration_minutes: number;
+}
+
+// Delete recording response
+export interface DeleteRecordingResponse {
+  message: string;
+  recording_id: string;
+}
+
+// Recordings filter params
+export interface RecordingsFilterParams {
+  start_date?: string;
+  end_date?: string;
+  year?: number;
+  month?: number;
+  day?: number;
+  limit?: number;
+  offset?: number;
+  sort?: 'asc' | 'desc';
 }
 
 // API Error

@@ -1,8 +1,11 @@
+import { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useMeeting, useStopMeeting, usePauseMeeting, useResumeMeeting } from '@/hooks/useMeetings';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRecording, useDeleteRecording, useTranscript } from '@/hooks/useMeetings';
 import { MEETING_STATUS_COLORS } from '@/api/types';
 import {
   ArrowLeft,
@@ -10,27 +13,66 @@ import {
   Clock,
   Calendar,
   ExternalLink,
-  Play,
-  Pause,
-  Square,
   Loader2,
   FileText,
   Bot,
-  Activity,
+  Download,
+  Search,
+  Copy,
+  Check,
+  Trash2,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
-export default function MeetingDetail() {
+// Helper to format seconds to MM:SS
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+export default function RecordingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: meeting, isLoading } = useMeeting(id || '');
-  const stopMeeting = useStopMeeting();
-  const pauseMeeting = usePauseMeeting();
-  const resumeMeeting = useResumeMeeting();
+  const { data: recording, isLoading } = useRecording(id || '');
+  const { data: transcriptData } = useTranscript(id || '');
+  const deleteRecording = useDeleteRecording();
+  
+  const [transcriptSearch, setTranscriptSearch] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const copyRecordingId = () => {
+    if (recording?.id) {
+      navigator.clipboard.writeText(recording.id);
+      setCopied(true);
+      toast.success('Recording ID copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleDelete = () => {
+    if (recording?.id) {
+      deleteRecording.mutate(recording.id, {
+        onSuccess: () => navigate('/dashboard/meetings'),
+      });
+    }
+  };
+
+  // Filter transcript segments by search
+  const filteredTranscript = useMemo(() => {
+    if (!transcriptData?.transcript) return [];
+    if (!transcriptSearch) return transcriptData.transcript;
+    
+    return transcriptData.transcript.filter(segment =>
+      segment.text.toLowerCase().includes(transcriptSearch.toLowerCase()) ||
+      segment.speaker.toLowerCase().includes(transcriptSearch.toLowerCase())
+    );
+  }, [transcriptData, transcriptSearch]);
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Meeting Details">
+      <DashboardLayout title="Recording Details">
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
@@ -38,19 +80,19 @@ export default function MeetingDetail() {
     );
   }
 
-  if (!meeting) {
+  if (!recording) {
     return (
-      <DashboardLayout title="Meeting Not Found">
+      <DashboardLayout title="Recording Not Found">
         <div className="text-center py-16">
           <Video className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">Meeting not found</h3>
+          <h3 className="text-lg font-medium text-foreground mb-2">Recording not found</h3>
           <p className="text-muted-foreground mb-4">
-            This meeting may have been deleted or doesn't exist.
+            This recording may have been deleted or doesn't exist.
           </p>
           <Link to="/dashboard/meetings">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Meetings
+              Back to Recordings
             </Button>
           </Link>
         </div>
@@ -58,30 +100,24 @@ export default function MeetingDetail() {
     );
   }
 
-  const isActive = ['running', 'recording', 'starting', 'pending', 'paused'].includes(
-    meeting.status.toLowerCase()
-  );
-  const isPaused = meeting.status.toLowerCase() === 'paused';
-  const isCompleted = meeting.status.toLowerCase() === 'completed';
-
-  const handleStop = () => {
-    stopMeeting.mutate(meeting.meeting_id, {
-      onSuccess: () => navigate('/dashboard/meetings'),
-    });
-  };
+  const isCompleted = recording.status.toLowerCase() === 'completed';
+  const isProcessing = ['processing', 'pending'].includes(recording.status.toLowerCase());
+  const hasVideo = !!recording.video_url;
+  const hasTranscript = !!recording.transcript || !!transcriptData;
 
   return (
     <DashboardLayout
-      title="Meeting Details"
-      description={`Meeting ID: ${meeting.meeting_id}`}
+      title="Recording Details"
+      description={`Recording ID: ${recording.id.slice(0, 8)}...`}
     >
       <Link to="/dashboard/meetings" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Meetings
+        Back to Recordings
       </Link>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Recording Header Card */}
           <Card className="glass-card border-border/50">
             <CardHeader className="flex flex-row items-start justify-between">
               <div className="flex items-center gap-4">
@@ -89,9 +125,23 @@ export default function MeetingDetail() {
                   <Video className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">{meeting.meeting_id}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl">{recording.id.slice(0, 12)}...</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={copyRecordingId}
+                    >
+                      {copied ? (
+                        <Check className="w-3 h-3 text-green-500" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </Button>
+                  </div>
                   <a
-                    href={meeting.meeting_url}
+                    href={recording.meeting_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mt-1"
@@ -103,10 +153,10 @@ export default function MeetingDetail() {
               </div>
               <span
                 className={`text-sm px-3 py-1.5 rounded-full border ${
-                  MEETING_STATUS_COLORS[meeting.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
+                  MEETING_STATUS_COLORS[recording.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
                 }`}
               >
-                {meeting.status}
+                {recording.status}
               </span>
             </CardHeader>
 
@@ -118,7 +168,7 @@ export default function MeetingDetail() {
                     <span className="text-xs">Duration</span>
                   </div>
                   <p className="text-lg font-semibold text-foreground">
-                    {meeting.actual_duration || meeting.meeting_duration || 0} min
+                    {recording.duration_minutes || 0} min
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-secondary/30 border border-border/50">
@@ -127,125 +177,193 @@ export default function MeetingDetail() {
                     <span className="text-xs">Created</span>
                   </div>
                   <p className="text-lg font-semibold text-foreground">
-                    {format(new Date(meeting.meeting_created_at), 'MMM d, yyyy')}
+                    {format(new Date(recording.created_at), 'MMM d, yyyy')}
                   </p>
                 </div>
-                <div className="p-4 rounded-lg bg-secondary/30 border border-border/50">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <Activity className="w-4 h-4" />
-                    <span className="text-xs">Last Updated</span>
+                {recording.completed_at && (
+                  <div className="p-4 rounded-lg bg-secondary/30 border border-border/50">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <Check className="w-4 h-4" />
+                      <span className="text-xs">Completed</span>
+                    </div>
+                    <p className="text-lg font-semibold text-foreground">
+                      {formatDistanceToNow(new Date(recording.completed_at), { addSuffix: true })}
+                    </p>
                   </div>
-                  <p className="text-lg font-semibold text-foreground">
-                    {formatDistanceToNow(new Date(meeting.meeting_updated_at), { addSuffix: true })}
-                  </p>
-                </div>
+                )}
               </div>
 
-              {meeting.meeting_started_at && (
-                <div className="p-4 rounded-lg bg-secondary/30 border border-border/50">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Started:</span>{' '}
-                    {format(new Date(meeting.meeting_started_at), 'PPpp')}
-                  </p>
-                  {meeting.meeting_ended_at && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      <span className="font-medium text-foreground">Ended:</span>{' '}
-                      {format(new Date(meeting.meeting_ended_at), 'PPpp')}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {isActive && (
-                <div className="flex items-center gap-3">
-                  {isPaused ? (
-                    <Button
-                      onClick={() => resumeMeeting.mutate(meeting.meeting_id)}
-                      disabled={resumeMeeting.isPending}
-                      className="flex-1"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Resume Recording
-                    </Button>
-                  ) : meeting.status.toLowerCase() === 'running' || meeting.status.toLowerCase() === 'recording' ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => pauseMeeting.mutate(meeting.meeting_id)}
-                      disabled={pauseMeeting.isPending}
-                      className="flex-1"
-                    >
-                      <Pause className="w-4 h-4 mr-2" />
-                      Pause
-                    </Button>
-                  ) : null}
-                  <Button
-                    variant="destructive"
-                    onClick={handleStop}
-                    disabled={stopMeeting.isPending}
-                  >
-                    <Square className="w-4 h-4 mr-2" />
-                    Stop Bot
-                  </Button>
-                </div>
-              )}
+              {/* Delete Button */}
+              <div className="flex justify-end">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  disabled={deleteRecording.isPending}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Recording
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Video & Transcript Section */}
           {isCompleted && (
             <Card className="glass-card border-border/50">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" />
+                  <Video className="w-5 h-5 text-primary" />
                   Recording & Transcript
                 </CardTitle>
+                <CardDescription>
+                  View your meeting recording and transcript
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Recording and transcript files will appear here once processing is complete.</p>
-                  <p className="text-sm mt-2">Files are stored securely in your S3 bucket.</p>
-                </div>
+                <Tabs defaultValue="video" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="video">
+                      <Video className="w-4 h-4 mr-2" />
+                      Video
+                    </TabsTrigger>
+                    <TabsTrigger value="transcript">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Transcript
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  {/* Video Player Tab */}
+                  <TabsContent value="video" className="space-y-4">
+                    {hasVideo ? (
+                      <>
+                        <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                          <video
+                            src={recording.video_url}
+                            controls
+                            className="w-full h-full"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={recording.video_url} download>
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Video
+                              </a>
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Duration: {recording.duration_minutes || 0} min
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="aspect-video bg-secondary/50 rounded-lg border border-border/50 flex flex-col items-center justify-center">
+                        <Loader2 className="w-12 h-12 text-muted-foreground/50 mb-3 animate-spin" />
+                        <p className="text-muted-foreground font-medium">Video Processing</p>
+                        <p className="text-sm text-muted-foreground/70 mt-1">
+                          Your video is being processed and will be available soon
+                        </p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  {/* Transcript Tab */}
+                  <TabsContent value="transcript" className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search transcript..."
+                          value={transcriptSearch}
+                          onChange={(e) => setTranscriptSearch(e.target.value)}
+                          className="pl-9 bg-secondary/50 border-border/50"
+                        />
+                      </div>
+                      <Button variant="outline" size="sm" disabled={!hasTranscript}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
+                    
+                    <div className="min-h-[300px] max-h-[500px] overflow-y-auto bg-secondary/30 rounded-lg border border-border/50 p-4">
+                      {hasTranscript && filteredTranscript.length > 0 ? (
+                        <div className="space-y-4">
+                          {filteredTranscript.map((segment, index) => (
+                            <div key={index} className="flex gap-3">
+                              <span className="text-xs text-primary font-mono shrink-0">
+                                {formatTime(segment.start_time)}
+                              </span>
+                              <div>
+                                <p className="text-xs font-medium text-foreground">{segment.speaker}</p>
+                                <p className="text-sm text-muted-foreground">{segment.text}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : hasTranscript && transcriptSearch ? (
+                        <div className="flex flex-col items-center justify-center h-full py-8">
+                          <Search className="w-12 h-12 text-muted-foreground/50 mb-3" />
+                          <p className="text-muted-foreground">No matches found</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full py-8">
+                          <Loader2 className="w-12 h-12 text-muted-foreground/50 mb-3 animate-spin" />
+                          <p className="text-muted-foreground font-medium">Transcript Processing</p>
+                          <p className="text-sm text-muted-foreground/70 mt-1">
+                            Your transcript is being generated
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           )}
-
-          {meeting.bot_logs && (
+          
+          {/* Processing State */}
+          {isProcessing && (
             <Card className="glass-card border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg">Bot Logs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto max-h-64 overflow-y-auto">
-                  {meeting.bot_logs}
-                </pre>
+              <CardContent className="py-8">
+                <div className="flex flex-col items-center text-center">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                  <h3 className="font-medium text-foreground mb-2">Processing Recording</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your recording is being processed. Video and transcript will be available soon.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
           <Card className="glass-card border-border/50">
             <CardHeader>
-              <CardTitle className="text-lg">Meeting Info</CardTitle>
+              <CardTitle className="text-lg">Recording Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Meeting ID</p>
-                <p className="text-sm font-mono text-foreground break-all">{meeting.meeting_id}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Recording ID</p>
+                <p className="text-sm font-mono text-foreground break-all">{recording.id}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Record ID</p>
-                <p className="text-sm font-mono text-foreground break-all">{meeting.id}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Meeting URL</p>
+                <p className="text-sm font-mono text-foreground break-all">{recording.meeting_url}</p>
               </div>
-              {meeting.container_id && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Status</p>
+                <p className="text-sm text-foreground capitalize">{recording.status}</p>
+              </div>
+              {recording.transcript && (
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Container</p>
-                  <p className="text-sm font-mono text-foreground break-all">{meeting.container_id.slice(0, 12)}</p>
-                </div>
-              )}
-              {meeting.port && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Port</p>
-                  <p className="text-sm font-mono text-foreground">{meeting.port}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Transcript Status</p>
+                  <p className="text-sm text-foreground capitalize">{recording.transcript.status}</p>
                 </div>
               )}
             </CardContent>
@@ -254,13 +372,13 @@ export default function MeetingDetail() {
           <Card className="glass-card border-border/50 glow-purple">
             <CardContent className="p-6 text-center">
               <Bot className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h4 className="font-medium text-foreground mb-2">Need another bot?</h4>
+              <h4 className="font-medium text-foreground mb-2">Record another meeting?</h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Deploy a new bot to record another meeting
+                Start a new recording for your next meeting
               </p>
               <Link to="/dashboard/new-meeting">
                 <Button variant="hero" size="sm" className="w-full">
-                  Deploy New Bot
+                  New Recording
                 </Button>
               </Link>
             </CardContent>

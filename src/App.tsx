@@ -71,6 +71,14 @@ const App = () => (
                 }
               />
               <Route
+                path="/dashboard/recordings/:id"
+                element={
+                  <ProtectedRoute>
+                    <MeetingDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/dashboard/new-meeting"
                 element={
                   <ProtectedRoute>

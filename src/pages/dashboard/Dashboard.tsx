@@ -1,7 +1,7 @@
 import { DashboardLayout } from '@/components/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useMeetings, useMeetingStats } from '@/hooks/useMeetings';
+import { useRecordings, useRecordingStats } from '@/hooks/useMeetings';
 import { useAuth } from '@/context/AuthContext';
 import { MEETING_STATUS_COLORS } from '@/api/types';
 import { Link } from 'react-router-dom';
@@ -19,16 +19,19 @@ import { formatDistanceToNow } from 'date-fns';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: meetings, isLoading } = useMeetings();
-  const stats = useMeetingStats();
+  const { data: recordingsData, isLoading } = useRecordings();
+  const { data: stats } = useRecordingStats();
 
-  // Get recent meetings (last 5)
-  const recentMeetings = meetings?.slice(0, 5) || [];
+  // Extract recordings array
+  const recordings = recordingsData?.recordings || [];
 
-  // Get active meetings
-  const activeMeetings = meetings?.filter((m) =>
-    ['running', 'recording', 'starting', 'pending'].includes(m.status.toLowerCase())
-  ) || [];
+  // Get recent recordings (last 5)
+  const recentRecordings = recordings.slice(0, 5);
+
+  // Get processing recordings
+  const processingRecordings = recordings.filter((r) =>
+    ['processing', 'pending'].includes(r.status.toLowerCase())
+  );
 
   return (
     <DashboardLayout
@@ -45,8 +48,8 @@ export default function Dashboard() {
             <Video className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">All time meetings recorded</p>
+            <div className="text-3xl font-bold text-foreground">{stats?.total_recordings || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">All time recordings</p>
           </CardContent>
         </Card>
 
@@ -58,8 +61,8 @@ export default function Dashboard() {
             <Bot className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.active}</div>
-            <p className="text-xs text-muted-foreground mt-1">Currently recording</p>
+            <div className="text-3xl font-bold text-foreground">{processingRecordings.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Currently processing</p>
           </CardContent>
         </Card>
 
@@ -71,7 +74,7 @@ export default function Dashboard() {
             <CheckCircle2 className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.completed}</div>
+            <div className="text-3xl font-bold text-foreground">{stats?.completed_recordings || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">Successfully recorded</p>
           </CardContent>
         </Card>
@@ -84,7 +87,7 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalMinutes}</div>
+            <div className="text-3xl font-bold text-foreground">{stats?.total_duration_minutes || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">Minutes recorded</p>
           </CardContent>
         </Card>
@@ -107,30 +110,30 @@ export default function Dashboard() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ) : activeMeetings.length > 0 ? (
+            ) : processingRecordings.length > 0 ? (
               <div className="space-y-3">
-                {activeMeetings.map((meeting) => (
+                {processingRecordings.map((recording) => (
                   <div
-                    key={meeting.id}
+                    key={recording.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border/50"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                       <div>
                         <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
-                          {meeting.meeting_id}
+                          {recording.id.slice(0, 12)}...
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Started {formatDistanceToNow(new Date(meeting.meeting_created_at), { addSuffix: true })}
+                          Started {formatDistanceToNow(new Date(recording.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
                     <span
                       className={`text-xs px-2 py-1 rounded-full border ${
-                        MEETING_STATUS_COLORS[meeting.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
+                        MEETING_STATUS_COLORS[recording.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
                       }`}
                     >
-                      {meeting.status}
+                      {recording.status}
                     </span>
                   </div>
                 ))}
@@ -171,12 +174,12 @@ export default function Dashboard() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ) : recentMeetings.length > 0 ? (
+            ) : recentRecordings.length > 0 ? (
               <div className="space-y-3">
-                {recentMeetings.map((meeting) => (
+                {recentRecordings.map((recording) => (
                   <Link
-                    key={meeting.id}
-                    to={`/dashboard/meetings/${meeting.id}`}
+                    key={recording.id}
+                    to={`/dashboard/recordings/${recording.id}`}
                     className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -185,19 +188,19 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground truncate max-w-[180px]">
-                          {meeting.meeting_id}
+                          {recording.id.slice(0, 12)}...
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(meeting.meeting_created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(recording.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
                     <span
                       className={`text-xs px-2 py-1 rounded-full border ${
-                        MEETING_STATUS_COLORS[meeting.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
+                        MEETING_STATUS_COLORS[recording.status.toLowerCase()] || 'bg-gray-500/20 text-gray-400'
                       }`}
                     >
-                      {meeting.status}
+                      {recording.status}
                     </span>
                   </Link>
                 ))}
