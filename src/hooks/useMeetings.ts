@@ -75,8 +75,20 @@ export function useLaunchMeeting() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ meetingUrl, durationMin }: { meetingUrl: string; durationMin: number }) =>
-      recordingsApi.launchMeeting(meetingUrl, durationMin),
+    mutationFn: ({
+      meetingUrl,
+      durationMinutes,
+      title,
+    }: {
+      meetingUrl: string;
+      durationMinutes: number;
+      title?: string;
+    }) =>
+      recordingsApi.launchMeeting({
+        meetingUrl,
+        durationMinutes,
+        title,
+      }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: recordingKeys.lists() });
       const recordingId = data.recordings?.[0]?.recording_id || data.created?.[0];
@@ -93,8 +105,17 @@ export function useLaunchMultipleMeetings() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ meetingUrls, durationMin }: { meetingUrls: string[]; durationMin: number }) =>
-      recordingsApi.launchMultipleMeetings(meetingUrls, durationMin),
+    mutationFn: ({
+      meetingUrls,
+      durationMinutes,
+    }: {
+      meetingUrls: string[];
+      durationMinutes: number;
+    }) =>
+      recordingsApi.launchMultipleMeetings({
+        meetingUrls,
+        durationMinutes,
+      }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: recordingKeys.lists() });
       toast.success(`${data.count} recording(s) started!`);

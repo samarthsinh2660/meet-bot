@@ -32,10 +32,25 @@ All new recordings endpoints are now deployed and working:
 ### Meetings Launch (Working ✅)
 - `POST /api/v1/meetings/launch` - Launch meeting recording(s)
   ```json
-  Request: { "meetings": ["url1", "url2", ...], "duration_min": 60, "record": true }
+  Request: {
+    "meetings": [
+      {
+        "url": "https://meet.google.com/abc-def-ghi",
+        "title": "Team Standup - Dec 12"
+      },
+      {
+        "url": "https://meet.google.com/xyz-123-456",
+        "title": "Client Demo"
+      }
+    ],
+    "duration_hours": 1,
+    "record": true
+  }
   Response: { "created": [...], "count": 1, "db_status": "ok", "recordings": [...] }
   ```
-  **Supports multiple meeting URLs in a single request!**
+  - `title` is optional and can be empty.
+  - Frontend still collects duration in **minutes** and converts to `duration_hours` before calling the API.
+  - Supports multiple meetings in a single request.
 
 ---
 
@@ -59,11 +74,12 @@ These endpoints from the old API are returning 404:
 ## ✅ FRONTEND UPDATES COMPLETED
 
 ### 1. API Layer (`src/api/`)
-- **types.ts** - Added new types:
+- **types.ts** - Added new types and fields:
   - `LaunchMeetingRequest`, `LaunchMeetingResponse`
   - `Recording`, `RecordingsListResponse`, `RecordingDetail`
   - `TranscriptSegment`, `TranscriptResponse`
   - `RecordingStats`, `RecordingsFilterParams`
+  - `meeting_title?: string` on `Recording` and `RecordingDetail` (optional, used for display only)
 
 - **meetings.ts** - Renamed to `recordingsApi` with new endpoints:
   - `launchMeeting()` - POST /api/v1/meetings/launch

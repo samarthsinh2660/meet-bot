@@ -105,10 +105,12 @@ export default function RecordingDetail() {
   const hasVideo = !!recording.video_url;
   const hasTranscript = !!recording.transcript || !!transcriptData;
 
+  const displayTitle = recording.meeting_title || `Recording ${recording.id.slice(0, 8)}...`;
+
   return (
     <DashboardLayout
-      title="Recording Details"
-      description={`Recording ID: ${recording.id.slice(0, 8)}...`}
+      title={displayTitle}
+      description={recording.meeting_url}
     >
       <Link to="/dashboard/meetings" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -126,7 +128,7 @@ export default function RecordingDetail() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl">{recording.id.slice(0, 12)}...</CardTitle>
+                    <CardTitle className="text-xl">{displayTitle}</CardTitle>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -348,6 +350,12 @@ export default function RecordingDetail() {
               <CardTitle className="text-lg">Recording Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Title</p>
+                <p className="text-sm text-foreground break-all">
+                  {recording.meeting_title || 'Untitled meeting'}
+                </p>
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Recording ID</p>
                 <p className="text-sm font-mono text-foreground break-all">{recording.id}</p>

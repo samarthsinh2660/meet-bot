@@ -15,7 +15,14 @@ import { Bot, Loader2, Video, Clock, Info, Plus, X, Users } from 'lucide-react';
 
 const singleMeetingSchema = z.object({
   meeting_url: z.string().url('Please enter a valid meeting URL'),
-  duration: z.coerce.number().min(1, 'Duration must be at least 1 minute').max(480, 'Duration cannot exceed 8 hours'),
+  // Duration in minutes (will be converted to hours in API layer)
+  duration: z
+    .coerce
+    .number()
+    .min(1, 'Duration must be at least 1 minute')
+    .max(480, 'Duration cannot exceed 8 hours'),
+  // Optional meeting title (can be empty)
+  title: z.string().optional(),
 });
 
 type SingleMeetingForm = z.infer<typeof singleMeetingSchema>;
@@ -46,14 +53,18 @@ export default function NewMeeting() {
   const duration = watch('duration');
 
   const onSubmitSingle = (data: SingleMeetingForm) => {
-    launchMeeting.mutate({
-      meetingUrl: data.meeting_url,
-      durationMin: data.duration,
-    }, {
-      onSuccess: () => {
-        navigate('/dashboard/meetings');
+    launchMeeting.mutate(
+      {
+        meetingUrl: data.meeting_url,
+        durationMinutes: data.duration,
+        title: data.title || undefined,
       },
-    });
+      {
+        onSuccess: () => {
+          navigate('/dashboard/meetings');
+        },
+      }
+    );
   };
 
   // Multi-meeting handlers
@@ -92,14 +103,18 @@ export default function NewMeeting() {
       return;
     }
 
-    launchMultipleMeetings.mutate({
-      meetingUrls: validUrls,
-      durationMin: multiDuration,
-    }, {
-      onSuccess: () => {
-        navigate('/dashboard/meetings');
+    launchMultipleMeetings.mutate(
+      {
+        meetingUrls: validUrls,
+        // Still in minutes here; API layer converts to hours
+        durationMinutes: multiDuration,
       },
-    });
+      {
+        onSuccess: () => {
+          navigate('/dashboard/meetings');
+        },
+      }
+    );
   };
 
   const presetDurations = [
@@ -161,6 +176,18 @@ export default function NewMeeting() {
                     <p className="text-xs text-muted-foreground">
                       Supports Google Meet, Zoom, Microsoft Teams, and more
                     </p>
+                  </div>
+
+                  {/* Optional title */}
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title (optional)</Label>
+                    <Input
+                      id="title"
+                      type="text"
+                      placeholder="Team Standup - Dec 12"
+                      className="bg-secondary/50 border-border/50 focus:border-primary h-10"
+                      {...register('title')}
+                    />
                   </div>
 
                   {/* Duration */}

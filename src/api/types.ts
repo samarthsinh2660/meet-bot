@@ -58,9 +58,14 @@ export interface PasswordResetConfirm {
 // ============================================
 
 // Launch meeting request
+export interface LaunchMeetingItem {
+  url: string;
+  title?: string;
+}
+
 export interface LaunchMeetingRequest {
-  meetings: string[];
-  duration_min: number;
+  meetings: LaunchMeetingItem[];
+  duration_hours: number;
   record?: boolean;
 }
 
@@ -99,6 +104,7 @@ export interface TranscriptResponse {
 export interface Recording {
   id: string;
   meeting_url: string;
+  meeting_title?: string;
   duration_minutes: number;
   video_url?: string;
   status: string;
@@ -119,6 +125,7 @@ export interface RecordingsListResponse {
 export interface RecordingDetail {
   id: string;
   meeting_url: string;
+  meeting_title?: string;
   duration_minutes: number;
   video_url?: string;
   status: string;
@@ -188,12 +195,21 @@ export type MeetingStatus =
   | 'cancelled';
 
 export const MEETING_STATUS_COLORS: Record<string, string> = {
+  // Waiting / queued
   pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+
+  // In-progress states
   starting: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  processing: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   running: 'bg-green-500/20 text-green-400 border-green-500/30',
-  recording: 'bg-green-500/20 text-green-400 border-green-500/30',
+  ready: 'bg-green-500/20 text-green-400 border-green-500/30',
+  recording: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+
+  // Paused / stopping
   paused: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   stopping: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+
+  // Terminal states
   completed: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   failed: 'bg-red-500/20 text-red-400 border-red-500/30',
   cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',

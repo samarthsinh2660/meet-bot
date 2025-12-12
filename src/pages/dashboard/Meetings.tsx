@@ -89,10 +89,12 @@ export default function Meetings() {
     if (!recordings.length) return [];
     
     return recordings.filter((recording) => {
-      // Search filter
+      // Search filter (by id, URL, or title)
+      const lowerSearch = search.toLowerCase();
       const matchesSearch =
-        recording.id.toLowerCase().includes(search.toLowerCase()) ||
-        recording.meeting_url.toLowerCase().includes(search.toLowerCase());
+        recording.id.toLowerCase().includes(lowerSearch) ||
+        recording.meeting_url.toLowerCase().includes(lowerSearch) ||
+        (recording.meeting_title?.toLowerCase().includes(lowerSearch) ?? false);
 
       // Status filter
       const matchesStatus =
@@ -299,7 +301,9 @@ export default function Meetings() {
                             <Video className="w-5 h-5 text-primary" />
                           </div>
                           <div>
-                            <p className="font-medium text-foreground truncate max-w-[180px]">{recording.id.slice(0, 8)}...</p>
+                            <p className="font-medium text-foreground truncate max-w-[180px]">
+                              {recording.meeting_title || `${recording.id.slice(0, 8)}...`}
+                            </p>
                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                               {recording.meeting_url}
                             </p>

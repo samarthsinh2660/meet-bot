@@ -121,7 +121,7 @@ export default function Dashboard() {
                       <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                       <div>
                         <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
-                          {recording.id.slice(0, 12)}...
+                          {recording.meeting_title || `${recording.id.slice(0, 12)}...`}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Started {formatDistanceToNow(new Date(recording.created_at), { addSuffix: true })}
@@ -188,7 +188,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground truncate max-w-[180px]">
-                          {recording.id.slice(0, 12)}...
+                          {recording.meeting_title || `${recording.id.slice(0, 12)}...`}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(recording.created_at), { addSuffix: true })}

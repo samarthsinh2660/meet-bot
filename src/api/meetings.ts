@@ -14,10 +14,23 @@ import type {
 // Recordings API endpoints (New API)
 export const recordingsApi = {
   // Launch a single meeting recording
-  launchMeeting: async (meetingUrl: string, durationMin: number): Promise<LaunchMeetingResponse> => {
+  launchMeeting: async ({
+    meetingUrl,
+    durationMinutes,
+    title,
+  }: {
+    meetingUrl: string;
+    durationMinutes: number;
+    title?: string;
+  }): Promise<LaunchMeetingResponse> => {
     const payload: LaunchMeetingRequest = {
-      meetings: [meetingUrl],
-      duration_min: durationMin,
+      meetings: [
+        {
+          url: meetingUrl,
+          title,
+        },
+      ],
+      duration_hours: durationMinutes / 60,
       record: true,
     };
     const response = await apiClient.post<LaunchMeetingResponse>(
@@ -28,10 +41,16 @@ export const recordingsApi = {
   },
 
   // Launch multiple meeting recordings at once
-  launchMultipleMeetings: async (meetingUrls: string[], durationMin: number): Promise<LaunchMeetingResponse> => {
+  launchMultipleMeetings: async ({
+    meetingUrls,
+    durationMinutes,
+  }: {
+    meetingUrls: string[];
+    durationMinutes: number;
+  }): Promise<LaunchMeetingResponse> => {
     const payload: LaunchMeetingRequest = {
-      meetings: meetingUrls,
-      duration_min: durationMin,
+      meetings: meetingUrls.map((url) => ({ url })),
+      duration_hours: durationMinutes / 60,
       record: true,
     };
     const response = await apiClient.post<LaunchMeetingResponse>(
