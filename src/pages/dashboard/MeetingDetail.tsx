@@ -100,10 +100,11 @@ export default function RecordingDetail() {
     );
   }
 
-  const isCompleted = recording.status.toLowerCase() === 'completed';
-  const isProcessing = ['processing', 'pending'].includes(recording.status.toLowerCase());
+  const status = recording.status.toLowerCase();
+  const isReady = status === 'completed' || status === 'ready';
+  const isProcessing = ['processing', 'pending', 'recording'].includes(status);
   const hasVideo = !!recording.video_url;
-  const hasTranscript = !!recording.transcript || !!transcriptData;
+  const hasTranscript = !!(transcriptData?.transcript?.length) || !!(recording.transcript?.segments?.length);
 
   const displayTitle = recording.meeting_title || `Recording ${recording.id.slice(0, 8)}...`;
 
@@ -210,8 +211,8 @@ export default function RecordingDetail() {
             </CardContent>
           </Card>
 
-          {/* Video & Transcript Section */}
-          {isCompleted && (
+          {/* Video & Transcript Section - show when ready or has video */}
+          {(isReady || hasVideo) && (
             <Card className="glass-card border-border/50">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -313,10 +314,10 @@ export default function RecordingDetail() {
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full py-8">
-                          <Loader2 className="w-12 h-12 text-muted-foreground/50 mb-3 animate-spin" />
-                          <p className="text-muted-foreground font-medium">Transcript Processing</p>
+                          <FileText className="w-12 h-12 text-muted-foreground/50 mb-3" />
+                          <p className="text-muted-foreground font-medium">No Transcript Available</p>
                           <p className="text-sm text-muted-foreground/70 mt-1">
-                            Your transcript is being generated
+                            Transcript was not generated for this recording
                           </p>
                         </div>
                       )}
