@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Play, FileText, Download, Calendar, Clock, Users } from "lucide-react";
+import { FileText, Calendar, Users } from "lucide-react";
 import { useState } from "react";
 
 interface Meeting {
@@ -82,11 +81,6 @@ const MeetingsLibrary = () => {
                   alt={meeting.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="hero" size="icon" className="rounded-full w-12 h-12">
-                    <Play className="w-5 h-5 ml-0.5" />
-                  </Button>
-                </div>
                 <div className="absolute bottom-2 right-2 glass-card px-2 py-1 rounded text-xs text-foreground">
                   {meeting.duration}
                 </div>
@@ -107,29 +101,15 @@ const MeetingsLibrary = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Play className="w-3 h-3 mr-1" />
-                    Play
-                  </Button>
-                  {meeting.hasTranscript && (
-                    <Button variant="ghost" size="sm">
-                      <FileText className="w-3 h-3" />
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="sm">
-                    <Download className="w-3 h-3" />
-                  </Button>
-                </div>
+                {meeting.hasTranscript && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <FileText className="w-3 h-3" />
+                    Transcript available
+                  </div>
+                )}
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="text-center mt-10">
-          <Button variant="outline" size="lg">
-            Browse Full Library
-          </Button>
         </div>
       </div>
     </section>

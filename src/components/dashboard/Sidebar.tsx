@@ -26,7 +26,7 @@ const navItems = [
     icon: Video,
   },
   {
-    label: 'New Bot',
+    label: 'New Notetaker',
     href: '/dashboard/new-meeting',
     icon: PlusCircle,
   },

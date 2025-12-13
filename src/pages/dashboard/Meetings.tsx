@@ -238,7 +238,7 @@ export default function Meetings() {
           <Link to="/dashboard/new-meeting">
             <Button variant="hero">
               <PlusCircle className="w-4 h-4 mr-2" />
-              New Bot
+              New Notetaker
             </Button>
           </Link>
         </div>
@@ -388,12 +388,12 @@ export default function Meetings() {
               <p className="text-muted-foreground mb-4">
                 {search || statusFilter !== 'all'
                   ? 'Try adjusting your filters'
-                  : 'Deploy your first bot to start recording meetings'}
+                  : 'Deploy your first notetaker to start recording meetings'}
               </p>
               <Link to="/dashboard/new-meeting">
                 <Button variant="hero">
                   <PlusCircle className="w-4 h-4 mr-2" />
-                  Deploy a Bot
+                  Deploy a Notetaker
                 </Button>
               </Link>
             </div>

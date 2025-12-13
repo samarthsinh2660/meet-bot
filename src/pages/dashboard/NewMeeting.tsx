@@ -126,8 +126,8 @@ export default function NewMeeting() {
 
   return (
     <DashboardLayout
-      title="Deploy New Bot"
-      description="Send an AI bot to attend and record your meeting"
+      title="Deploy New Notetaker"
+      description="Send an AI notetaker to attend and record your meeting"
     >
       <div className="max-w-2xl mx-auto">
         <Card className="glass-card border-border/50 glow-purple">
@@ -135,9 +135,9 @@ export default function NewMeeting() {
             <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
               <Bot className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Deploy Meeting Bot</CardTitle>
+            <CardTitle className="text-2xl">Deploy Meeting Notetaker</CardTitle>
             <CardDescription>
-              Enter your meeting URL and the bot will join automatically to record
+              Enter your meeting URL and the notetaker will join automatically to record
             </CardDescription>
           </CardHeader>
 
@@ -241,12 +241,12 @@ export default function NewMeeting() {
                     {launchMeeting.isPending ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Deploying Bot...
+                        Deploying Notetaker...
                       </>
                     ) : (
                       <>
                         <Bot className="w-5 h-5" />
-                        Deploy Bot
+                        Deploy Notetaker
                       </>
                     )}
                   </Button>
@@ -351,12 +351,12 @@ export default function NewMeeting() {
                     {launchMultipleMeetings.isPending ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Deploying {meetingUrls.filter(u => u.trim()).length} Bots...
+                        Deploying {meetingUrls.filter(u => u.trim()).length} Notetakers...
                       </>
                     ) : (
                       <>
                         <Bot className="w-5 h-5" />
-                        Deploy {meetingUrls.filter(u => u.trim()).length || 0} Bot(s)
+                        Deploy {meetingUrls.filter(u => u.trim()).length || 0} Notetaker(s)
                       </>
                     )}
                   </Button>
@@ -370,7 +370,7 @@ export default function NewMeeting() {
               <div className="text-sm">
                 <p className="font-medium text-foreground mb-1">How it works</p>
                 <ul className="text-muted-foreground space-y-1">
-                  <li>• Bot joins your meeting as "Skriber Bot"</li>
+                  <li>• Notetaker joins your meeting as "Skriber Notetaker"</li>
                   <li>• Records video and audio in HD quality</li>
                   <li>• Generates transcript automatically</li>
                   <li>• Files are stored securely in your account</li>
@@ -386,7 +386,7 @@ export default function NewMeeting() {
             <CardContent className="p-4">
               <h4 className="font-medium text-foreground mb-2">💡 Pro Tip</h4>
               <p className="text-sm text-muted-foreground">
-                You can deploy multiple bots simultaneously to attend different meetings at the same time.
+                You can deploy multiple notetakers simultaneously to attend different meetings at the same time.
               </p>
             </CardContent>
           </Card>
@@ -394,7 +394,7 @@ export default function NewMeeting() {
             <CardContent className="p-4">
               <h4 className="font-medium text-foreground mb-2">⏰ Timing</h4>
               <p className="text-sm text-muted-foreground">
-                Deploy the bot a few minutes before your meeting starts for best results.
+                Deploy the notetaker a few minutes before your meeting starts for best results.
               </p>
             </CardContent>
           </Card>

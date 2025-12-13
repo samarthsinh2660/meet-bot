@@ -20,7 +20,8 @@ const passwordSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   confirm_password: z.string(),
 }).refine((data) => data.new_password === data.confirm_password, {
   message: "Passwords don't match",
@@ -181,6 +182,9 @@ export default function Settings() {
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                </p>
                 {errors.new_password && (
                   <p className="text-sm text-destructive">{errors.new_password.message}</p>
                 )}
@@ -241,8 +245,8 @@ export default function Settings() {
             <Separator className="bg-border/50" />
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-foreground">Bot Status Updates</p>
-                <p className="text-sm text-muted-foreground">Notifications when bot joins or leaves</p>
+                <p className="font-medium text-foreground">Notetaker Status Updates</p>
+                <p className="text-sm text-muted-foreground">Notifications when notetaker joins or leaves</p>
               </div>
               <Switch />
             </div>

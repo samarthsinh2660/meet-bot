@@ -27,7 +27,7 @@ const Hero = () => {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-slide-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
-            Deploy AI-powered meeting bots to attend unlimited meetings simultaneously. 
+            Deploy AI-powered meeting notetakers to attend unlimited meetings simultaneously. 
             Receive HD recordings, intelligent transcripts, and actionable insights—automatically.
           </p>
 
@@ -94,7 +94,7 @@ const Hero = () => {
                       <Bot className="w-5 h-5 text-primary" />
                     </div>
                     <div className="text-2xl font-bold text-foreground">3</div>
-                    <div className="text-sm text-muted-foreground">Active Bots</div>
+                    <div className="text-sm text-muted-foreground">Active Notetakers</div>
                   </div>
                 </div>
               </div>

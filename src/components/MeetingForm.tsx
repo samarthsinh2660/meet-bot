@@ -40,7 +40,7 @@ const MeetingForm = () => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    toast.success(`${validLinks.length} bot(s) dispatched to meetings!`);
+    toast.success(`${validLinks.length} notetaker(s) dispatched to meetings!`);
     setLinks([""]);
     setIsSubmitting(false);
   };
@@ -51,13 +51,13 @@ const MeetingForm = () => {
       
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-12">
-          <span className="text-primary text-sm font-semibold uppercase tracking-wider">Deploy Bots</span>
+          <span className="text-primary text-sm font-semibold uppercase tracking-wider">Deploy Notetakers</span>
           <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
             <span className="text-foreground">Schedule your </span>
             <span className="gradient-text">meeting coverage</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Add meeting links and your AI assistant will join automatically. 
+            Add meeting links and your AI notetaker will join automatically. 
             Access recordings and transcripts within minutes.
           </p>
         </div>
@@ -119,7 +119,7 @@ const MeetingForm = () => {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Deploy Bots
+                    Deploy Notetakers
                   </>
                 )}
               </Button>

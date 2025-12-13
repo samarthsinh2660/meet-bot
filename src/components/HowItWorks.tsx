@@ -10,8 +10,8 @@ const steps = [
   {
     icon: Bot,
     step: "02",
-    title: "Bot Deployment",
-    description: "Your AI assistant joins meetings automatically at the scheduled time.",
+    title: "Notetaker Deployment",
+    description: "Your AI notetaker joins meetings automatically at the scheduled time.",
   },
   {
     icon: Video,

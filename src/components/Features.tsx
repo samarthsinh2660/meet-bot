@@ -3,8 +3,8 @@ import { Bot, Video, FileText, Cloud, Shield, Zap } from "lucide-react";
 const features = [
   {
     icon: Bot,
-    title: "Intelligent Meeting Bots",
-    description: "AI assistants that join meetings seamlessly, capturing every detail without disruption.",
+    title: "Intelligent Meeting Notetakers",
+    description: "AI notetakers that join meetings seamlessly, capturing every detail without disruption.",
   },
   {
     icon: Video,

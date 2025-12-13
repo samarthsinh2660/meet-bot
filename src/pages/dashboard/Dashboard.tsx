@@ -56,7 +56,7 @@ export default function Dashboard() {
         <Card className="glass-card border-border/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active Bots
+              Active Notetakers
             </CardTitle>
             <Bot className="h-4 w-4 text-green-500" />
           </CardHeader>
@@ -94,13 +94,13 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Active Bots */}
+        {/* Active Notetakers */}
         <Card className="glass-card border-border/50">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Active Bots</CardTitle>
+              <CardTitle className="text-lg">Active Notetakers</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Currently running meeting bots
+                Currently running meeting notetakers
               </p>
             </div>
             <Activity className="h-5 w-5 text-green-500 animate-pulse" />
@@ -141,11 +141,11 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8">
                 <Bot className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                <p className="text-muted-foreground">No active bots</p>
+                <p className="text-muted-foreground">No active notetakers</p>
                 <Link to="/dashboard/new-meeting">
                   <Button variant="outline" size="sm" className="mt-3">
                     <PlusCircle className="w-4 h-4 mr-2" />
-                    Deploy a bot
+                    Deploy a notetaker
                   </Button>
                 </Link>
               </div>
@@ -212,7 +212,7 @@ export default function Dashboard() {
                 <Link to="/dashboard/new-meeting">
                   <Button variant="outline" size="sm" className="mt-3">
                     <PlusCircle className="w-4 h-4 mr-2" />
-                    Start your first bot
+                    Start your first notetaker
                   </Button>
                 </Link>
               </div>
@@ -231,14 +231,14 @@ export default function Dashboard() {
             <div>
               <h3 className="font-semibold text-foreground">Ready to record a meeting?</h3>
               <p className="text-sm text-muted-foreground">
-                Deploy a bot to attend and record your meeting automatically
+                Deploy a notetaker to attend and record your meeting automatically
               </p>
             </div>
           </div>
           <Link to="/dashboard/new-meeting">
             <Button variant="hero">
               <PlusCircle className="w-4 h-4 mr-2" />
-              New Bot
+              New Notetaker
             </Button>
           </Link>
         </CardContent>
