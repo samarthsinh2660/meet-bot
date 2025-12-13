@@ -122,14 +122,14 @@ export default function RecordingDetail() {
         <div className="lg:col-span-2 space-y-6">
           {/* Recording Header Card */}
           <Card className="glass-card border-border/50">
-            <CardHeader className="flex flex-row items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Video className="w-7 h-7 text-primary" />
+            <CardHeader className="flex flex-col sm:flex-row items-start gap-4 sm:justify-between">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Video className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl">{displayTitle}</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl truncate">{displayTitle}</CardTitle>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -163,8 +163,8 @@ export default function RecordingDetail() {
               </span>
             </CardHeader>
 
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                 <div className="p-4 rounded-lg bg-secondary/30 border border-border/50">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Clock className="w-4 h-4" />
@@ -225,14 +225,14 @@ export default function RecordingDetail() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="video" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="video">
-                      <Video className="w-4 h-4 mr-2" />
-                      Video
+                  <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
+                    <TabsTrigger value="video" className="text-xs sm:text-sm py-2">
+                      <Video className="w-4 h-4 mr-1 sm:mr-2" />
+                      <span className="hidden xs:inline">Video</span>
                     </TabsTrigger>
-                    <TabsTrigger value="transcript">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Transcript
+                    <TabsTrigger value="transcript" className="text-xs sm:text-sm py-2">
+                      <FileText className="w-4 h-4 mr-1 sm:mr-2" />
+                      <span className="hidden xs:inline">Transcript</span>
                     </TabsTrigger>
                   </TabsList>
                   
@@ -249,7 +249,7 @@ export default function RecordingDetail() {
                             Your browser does not support the video tag.
                           </video>
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" asChild>
                               <a href={recording.video_url} download>

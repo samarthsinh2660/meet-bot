@@ -35,11 +35,11 @@ const features = [
 
 const Features = () => {
   return (
-    <section id="features" className="py-24 relative">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
+    <section id="features" className="py-16 sm:py-24 relative">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-16">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">Features</span>
-          <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
             <span className="text-foreground">Purpose-built for </span>
             <span className="gradient-text">modern teams</span>
           </h2>

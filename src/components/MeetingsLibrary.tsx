@@ -54,11 +54,11 @@ const MeetingsLibrary = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
 
   return (
-    <section className="py-24 relative">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-12">
+    <section className="py-16 sm:py-24 relative">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8 sm:mb-12">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">Meeting Library</span>
-          <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
             <span className="text-foreground">Your </span>
             <span className="gradient-text">recordings</span>
           </h2>
@@ -67,7 +67,7 @@ const MeetingsLibrary = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {mockMeetings.map((meeting, index) => (
             <div
               key={meeting.id}

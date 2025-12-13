@@ -46,13 +46,13 @@ const MeetingForm = () => {
   };
 
   return (
-    <section id="meetings" className="py-24 relative">
+    <section id="meetings" className="py-16 sm:py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
       
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-12">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center mb-8 sm:mb-12">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">Deploy Notetakers</span>
-          <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
             <span className="text-foreground">Schedule your </span>
             <span className="gradient-text">meeting coverage</span>
           </h2>
@@ -63,7 +63,7 @@ const MeetingForm = () => {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 md:p-8 glow-purple">
+          <form onSubmit={handleSubmit} className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 glow-purple">
             <div className="space-y-4 mb-6">
               {links.map((link, index) => (
                 <div key={index} className="flex items-center gap-3 animate-slide-in">

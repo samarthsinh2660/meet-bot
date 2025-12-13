@@ -29,13 +29,13 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section id="how-it-works" className="py-24 relative">
+    <section id="how-it-works" className="py-16 sm:py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
       
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center mb-10 sm:mb-16">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">How It Works</span>
-          <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mt-4 mb-4 tracking-tight">
             <span className="text-foreground">Effortless </span>
             <span className="gradient-text">automation</span>
           </h2>
@@ -44,7 +44,7 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {steps.map((item, index) => (
             <div
               key={item.step}

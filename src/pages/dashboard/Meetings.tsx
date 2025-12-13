@@ -235,10 +235,11 @@ export default function Meetings() {
             </PopoverContent>
           </Popover>
           
-          <Link to="/dashboard/new-meeting">
-            <Button variant="hero">
+          <Link to="/dashboard/new-meeting" className="w-full sm:w-auto">
+            <Button variant="hero" className="w-full sm:w-auto">
               <PlusCircle className="w-4 h-4 mr-2" />
-              New Notetaker
+              <span className="hidden sm:inline">New Notetaker</span>
+              <span className="sm:hidden">New</span>
             </Button>
           </Link>
         </div>
@@ -284,8 +285,8 @@ export default function Meetings() {
                   <TableRow className="border-border/50 hover:bg-transparent">
                     <TableHead className="text-muted-foreground">Recording</TableHead>
                     <TableHead className="text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-muted-foreground">Duration</TableHead>
-                    <TableHead className="text-muted-foreground">Created</TableHead>
+                    <TableHead className="text-muted-foreground hidden md:table-cell">Duration</TableHead>
+                    <TableHead className="text-muted-foreground hidden sm:table-cell">Created</TableHead>
                     <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -297,14 +298,14 @@ export default function Meetings() {
                           to={`/dashboard/recordings/${recording.id}`}
                           className="flex items-center gap-3 hover:bg-secondary/40 rounded-md p-1 -m-1"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <Video className="w-5 h-5 text-primary" />
                           </div>
-                          <div>
-                            <p className="font-medium text-foreground truncate max-w-[180px]">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate max-w-[120px] sm:max-w-[180px]">
                               {recording.meeting_title || `${recording.id.slice(0, 8)}...`}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            <p className="text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-[200px]">
                               {recording.meeting_url}
                             </p>
                           </div>
@@ -326,10 +327,10 @@ export default function Meetings() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground hidden md:table-cell">
                         {recording.duration_minutes || 0} min
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground hidden sm:table-cell">
                         <div>
                           <p>{format(new Date(recording.created_at), 'MMM d, yyyy')}</p>
                           <p className="text-xs">

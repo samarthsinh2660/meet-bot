@@ -19,14 +19,14 @@ const Hero = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slide-in tracking-tight" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 animate-slide-in tracking-tight" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Be everywhere</span>
             <br />
             <span className="gradient-text">at once.</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-slide-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 sm:mb-10 animate-slide-in leading-relaxed px-2" style={{ animationDelay: '0.2s' }}>
             Deploy AI-powered meeting notetakers to attend unlimited meetings simultaneously. 
             Receive HD recordings, intelligent transcripts, and actionable insights—automatically.
           </p>
@@ -47,25 +47,25 @@ const Hero = () => {
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-4 animate-slide-in" style={{ animationDelay: '0.4s' }}>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full">
-              <Video className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground">HD Recording</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 animate-slide-in" style={{ animationDelay: '0.4s' }}>
+            <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+              <Video className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm text-foreground">HD Recording</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full">
-              <FileText className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground">Auto Transcripts</span>
+            <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm text-foreground">Auto Transcripts</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-4 py-2 rounded-full">
-              <Bot className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground">Multi-Meeting</span>
+            <div className="flex items-center gap-2 glass-card px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+              <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm text-foreground">Multi-Meeting</span>
             </div>
           </div>
         </div>
 
         {/* Hero Visual */}
-        <div className="mt-16 relative animate-slide-in" style={{ animationDelay: '0.5s' }}>
-          <div className="glass-card rounded-2xl p-1 glow-purple max-w-5xl mx-auto">
+        <div className="mt-10 sm:mt-16 relative animate-slide-in" style={{ animationDelay: '0.5s' }}>
+          <div className="glass-card rounded-xl sm:rounded-2xl p-1 glow-purple max-w-5xl mx-auto">
             <div className="bg-card rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
                 <div className="w-3 h-3 rounded-full bg-destructive/60" />
@@ -73,8 +73,8 @@ const Hero = () => {
                 <div className="w-3 h-3 rounded-full bg-green-500/60" />
                 <span className="text-xs text-muted-foreground ml-2">Skriber Dashboard</span>
               </div>
-              <div className="p-6 bg-gradient-to-br from-card to-secondary/30">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 sm:p-6 bg-gradient-to-br from-card to-secondary/30">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="glass-card rounded-lg p-4">
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mb-3">
                       <Video className="w-5 h-5 text-primary" />

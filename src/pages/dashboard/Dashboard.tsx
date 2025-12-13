@@ -223,9 +223,9 @@ export default function Dashboard() {
 
       {/* Quick Action */}
       <Card className="mt-6 glass-card border-border/50 glow-purple">
-        <CardContent className="flex items-center justify-between py-6">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
               <Bot className="w-6 h-6 text-primary" />
             </div>
             <div>
@@ -235,8 +235,8 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
-          <Link to="/dashboard/new-meeting">
-            <Button variant="hero">
+          <Link to="/dashboard/new-meeting" className="w-full sm:w-auto">
+            <Button variant="hero" className="w-full sm:w-auto">
               <PlusCircle className="w-4 h-4 mr-2" />
               New Notetaker
             </Button>

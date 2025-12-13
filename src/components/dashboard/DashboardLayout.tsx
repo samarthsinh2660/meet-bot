@@ -17,14 +17,16 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
     <div className="min-h-screen bg-background">
       <Sidebar />
       
-      {/* Main content - offset by sidebar width */}
+      {/* Main content - offset by sidebar width on desktop, full width on mobile */}
       <div className={cn(
         'transition-all duration-300',
-        collapsed ? 'pl-16' : 'pl-64'
+        // No left padding on mobile, sidebar padding on desktop
+        'pl-0 lg:pl-64',
+        collapsed && 'lg:pl-16'
       )}>
         <DashboardHeader title={title} description={description} />
         
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>
