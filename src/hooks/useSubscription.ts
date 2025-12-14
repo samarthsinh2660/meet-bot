@@ -101,6 +101,12 @@ export function useCreateCheckout() {
 
   return useMutation({
     mutationFn: async (planId: string) => {
+      const rawTestAmount = import.meta.env.VITE_PAYMENT_TEST_AMOUNT_PAISE;
+      const testAmountPaise = rawTestAmount ? Number(rawTestAmount) : undefined;
+      const customAmount = typeof testAmountPaise === 'number' && Number.isFinite(testAmountPaise) && testAmountPaise > 0
+        ? Math.trunc(testAmountPaise)
+        : undefined;
+
       // Load Razorpay script first
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
@@ -108,10 +114,13 @@ export function useCreateCheckout() {
       }
 
       // Create checkout session
-      const checkoutData = await subscriptionApi.createCheckout(planId);
+      const checkoutData = await subscriptionApi.createCheckout(planId, customAmount);
       return checkoutData;
     },
     onSuccess: (checkoutData: RazorpayCheckoutResponse) => {
+      const rawTestAmount = import.meta.env.VITE_PAYMENT_TEST_AMOUNT_PAISE;
+      const isTestMode = !!rawTestAmount;
+
       // Open Razorpay checkout modal
       const options: RazorpayOptions = {
         key: checkoutData.key_id,
@@ -119,7 +128,9 @@ export function useCreateCheckout() {
         currency: checkoutData.currency,
         order_id: checkoutData.order_id,
         name: 'Skriber',
-        description: 'Pro Plan - ₹899/month',
+        description: isTestMode
+          ? `Test Payment - ₹${(checkoutData.amount / 100).toFixed(2)}`
+          : 'Pro Plan - ₹899/month',
         image: '/logo.png',
         handler: async (response: RazorpayResponse) => {
           // Payment successful
