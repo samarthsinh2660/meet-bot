@@ -119,7 +119,7 @@ export function useCreateCheckout() {
         currency: checkoutData.currency,
         order_id: checkoutData.order_id,
         name: 'Skriber',
-        description: 'Pro Plan - ₹1,085/month',
+        description: 'Pro Plan - ₹899/month',
         image: '/logo.png',
         handler: async (response: RazorpayResponse) => {
           // Payment successful

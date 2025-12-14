@@ -70,7 +70,7 @@ export function UpgradeModal({
               <span className="font-semibold text-foreground">Pro Plan</span>
             </div>
             <div>
-              <span className="text-2xl font-bold text-foreground">₹1,085</span>
+              <span className="text-2xl font-bold text-foreground">₹899</span>
               <span className="text-muted-foreground">/mo</span>
             </div>
           </div>

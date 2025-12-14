@@ -17,7 +17,7 @@ Free Trial:
 - Automatic on signup
 
 Pro Plan:
-- ₹1,085/month
+- ₹899/month
 - 50 meetings per month
 - Unlimited duration
 - Monthly billing cycle
@@ -63,7 +63,7 @@ Response Format:
   {
     "id": "pro",
     "name": "Pro",
-    "price": 1085,
+    "price": 899,
     "currency": "INR",
     "meetings_limit": 50,
     "duration_limit": null,
@@ -174,7 +174,7 @@ Response Format:
 {
   "order_id": "order_xyz789",
   "key_id": "rzp_live_RrYRiWs7SwQ3MI",
-  "amount": 108500,
+  "amount": 89900,
   "currency": "INR"
 }
 
@@ -187,7 +187,7 @@ curl -X POST \
 
 Notes:
 - plan_id must be "pro" (cannot checkout for free plan)
-- amount is in paise (108500 = ₹1,085)
+- amount is in paise (89900 = ₹899)
 - order_id is used in Razorpay checkout
 - key_id is Razorpay public key
 
@@ -282,7 +282,7 @@ Response Format:
 [
   {
     "id": "pay_123",
-    "amount": 1085,
+    "amount": 899,
     "currency": "INR",
     "status": "succeeded",
     "created_at": "2024-12-14T10:30:00Z",
@@ -356,7 +356,7 @@ async function upgradeToProPlan(userToken) {
     currency: checkoutData.currency,
     order_id: checkoutData.order_id,
     name: 'Skriber',
-    description: 'Pro Plan - ₹1,085/month',
+    description: 'Pro Plan - ₹899/month',
     image: 'https://skriber.in/logo.png',
     handler: async function(razorpayResponse) {
       // 3. Payment successful!
@@ -509,7 +509,7 @@ TESTING CHECKLIST
 
 Subscription Plans:
 - [ ] Can fetch plans without authentication
-- [ ] Plans show correct pricing (₹0 and ₹1,085)
+- [ ] Plans show correct pricing (₹0 and ₹899)
 - [ ] Plans show correct features
 
 Current Subscription:
@@ -638,7 +638,7 @@ POST   /subscriptions/portal          - Customer portal (auth)
 
 Plan IDs:
 - "free" - Free trial (5 meetings)
-- "pro" - Pro plan (₹1,085/month, 50 meetings)
+- "pro" - Pro plan (₹899/month, 50 meetings)
 
 Status Values:
 - "trial" - Free trial active

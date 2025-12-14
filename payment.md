@@ -5,7 +5,7 @@ This document outlines the backend API endpoints and data structures needed to s
 ## Overview
 
 - **Free Trial**: 5 meetings total (no time limit)
-- **Pro Plan**: ₹1,085/month - 50 meetings/month, unlimited duration
+- **Pro Plan**: ₹899/month - 50 meetings/month, unlimited duration
 
 ---
 
@@ -37,7 +37,7 @@ Returns list of available subscription plans.
   {
     "id": "pro_monthly",
     "name": "Pro",
-    "price": 1085,
+    "price": 899,
     "currency": "INR",
     "meetings_limit": 50,
     "duration_limit": null,
@@ -193,7 +193,7 @@ Returns user's payment history.
 [
   {
     "id": "pay_123",
-    "amount": 1085,
+    "amount": 899,
     "currency": "INR",
     "status": "succeeded",
     "created_at": "2024-12-14T10:30:00Z",

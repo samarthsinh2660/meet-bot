@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Auth Pages
-import { Login, Register, ForgotPassword } from "./pages/auth";
+import { Login, Register, ForgotPassword, OAuthSuccess } from "./pages/auth";
 
 // Dashboard Pages
 import { Dashboard, Meetings, NewMeeting, MeetingDetail, Settings } from "./pages/dashboard";
@@ -44,6 +44,7 @@ const App = () => (
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/oauth-success" element={<OAuthSuccess />} />
               
               {/* Protected Dashboard Routes */}
               <Route

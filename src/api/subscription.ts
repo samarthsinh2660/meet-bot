@@ -37,7 +37,7 @@ export interface UsageStats {
 export interface RazorpayCheckoutResponse {
   order_id: string;
   key_id: string;
-  amount: number; // in paise (108500 = ₹1,085)
+  amount: number; // in paise (89900 = ₹899)
   currency: string;
 }
 

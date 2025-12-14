@@ -172,7 +172,7 @@ export default function Settings() {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {isPro ? '₹1,085/month • 50 meetings/month' : '5 meetings total • No expiration'}
+                    {isPro ? '₹899/month • 50 meetings/month' : '5 meetings total • No expiration'}
                   </p>
                 </div>
               </div>
