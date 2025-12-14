@@ -41,11 +41,6 @@ export interface RazorpayCheckoutResponse {
   currency: string;
 }
 
-export interface CreateCheckoutRequest {
-  plan_id: string;
-  custom_amount?: number;
-}
-
 export interface PaymentHistory {
   id: string;
   amount: number; // in rupees
@@ -93,13 +88,10 @@ export const subscriptionApi = {
   },
 
   // Create checkout session (returns Razorpay order details)
-  createCheckout: async (planId: string, customAmount?: number): Promise<RazorpayCheckoutResponse> => {
-    const payload: CreateCheckoutRequest = {
+  createCheckout: async (planId: string): Promise<RazorpayCheckoutResponse> => {
+    const response = await apiClient.post('/api/v1/subscriptions/checkout', {
       plan_id: planId,
-      ...(typeof customAmount === 'number' ? { custom_amount: customAmount } : {}),
-    };
-
-    const response = await apiClient.post('/api/v1/subscriptions/checkout', payload);
+    });
     return response.data;
   },
 
