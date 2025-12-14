@@ -1,9 +1,12 @@
-import { Check, Zap, Crown } from "lucide-react";
+import { Check, Zap, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { isAuthenticated } from "@/api/client";
+import { useCreateCheckout } from "@/hooks/useSubscription";
 
 const plans = [
   {
+    id: "free",
     name: "Free Trial",
     price: "₹0",
     period: "forever",
@@ -24,6 +27,7 @@ const plans = [
     icon: Zap,
   },
   {
+    id: "pro",
     name: "Pro",
     price: "₹1,085",
     period: "/month",
@@ -47,6 +51,14 @@ const plans = [
 ];
 
 const Pricing = () => {
+  const createCheckout = useCreateCheckout();
+  const authenticated = isAuthenticated();
+
+  const handleUpgrade = (planId: string) => {
+    if (planId === "pro") {
+      createCheckout.mutate(planId);
+    }
+  };
   return (
     <section id="pricing" className="py-16 sm:py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
@@ -120,15 +132,34 @@ const Pricing = () => {
                 ))}
               </ul>
 
-              <Link to={plan.ctaLink} className="block">
+              {authenticated && plan.id === "pro" ? (
                 <Button 
-                  variant={plan.popular ? "hero" : "outline"} 
+                  variant="hero"
                   className="w-full"
                   size="lg"
+                  onClick={() => handleUpgrade(plan.id)}
+                  disabled={createCheckout.isPending}
                 >
-                  {plan.cta}
+                  {createCheckout.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    plan.cta
+                  )}
                 </Button>
-              </Link>
+              ) : (
+                <Link to={plan.ctaLink} className="block">
+                  <Button 
+                    variant={plan.popular ? "hero" : "outline"} 
+                    className="w-full"
+                    size="lg"
+                  >
+                    {plan.cta}
+                  </Button>
+                </Link>
+              )}
             </div>
           ))}
         </div>

@@ -11,7 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLaunchMeeting, useLaunchMultipleMeetings } from '@/hooks/useMeetings';
-import { Bot, Loader2, Video, Clock, Info, Plus, X, Users } from 'lucide-react';
+import { useUsage, useCreateCheckout } from '@/hooks/useSubscription';
+import { UpgradeModal } from '@/components/UpgradeModal';
+import { Bot, Loader2, Video, Clock, Info, Plus, X, Users, AlertCircle } from 'lucide-react';
 
 const singleMeetingSchema = z.object({
   meeting_url: z.string().url('Please enter a valid meeting URL'),
@@ -31,11 +33,24 @@ export default function NewMeeting() {
   const navigate = useNavigate();
   const launchMeeting = useLaunchMeeting();
   const launchMultipleMeetings = useLaunchMultipleMeetings();
+  const { data: usage } = useUsage();
+  const createCheckout = useCreateCheckout();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  // Usage data
+  const canRecord = usage?.can_record ?? true;
+  const meetingsUsed = usage?.meetings_used ?? 0;
+  const meetingsLimit = usage?.meetings_limit ?? 5;
+  const planName = usage?.plan_name ?? 'free';
   
   // Multi-meeting state
   const [meetingUrls, setMeetingUrls] = useState<string[]>(['']);
   const [multiDuration, setMultiDuration] = useState(60);
   const [multiError, setMultiError] = useState<string | null>(null);
+
+  const handleUpgrade = () => {
+    createCheckout.mutate('pro');
+  };
 
   const {
     register,
@@ -129,7 +144,37 @@ export default function NewMeeting() {
       title="Deploy New Notetaker"
       description="Send an AI notetaker to attend and record your meeting"
     >
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        currentUsage={meetingsUsed}
+        maxUsage={meetingsLimit}
+        onUpgrade={handleUpgrade}
+        isLoading={createCheckout.isPending}
+      />
+
       <div className="max-w-2xl mx-auto">
+        {/* Limit Reached Warning */}
+        {!canRecord && (
+          <Card className="glass-card border-destructive/50 bg-destructive/5 mb-6">
+            <CardContent className="flex flex-col sm:flex-row items-center gap-4 py-4">
+              <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-destructive" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="font-semibold text-foreground">Free trial limit reached</h3>
+                <p className="text-sm text-muted-foreground">
+                  You've used all {meetingsLimit} free meetings. Upgrade to Pro for 50 meetings/month.
+                </p>
+              </div>
+              <Button variant="hero" onClick={() => setShowUpgradeModal(true)}>
+                Upgrade Now
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="glass-card border-border/50 glow-purple">
           <CardHeader className="text-center pb-2">
             <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">

@@ -1,0 +1,666 @@
+================================================================================
+PAYMENT & SUBSCRIPTION SYSTEM - BACKEND API DOCUMENTATION
+================================================================================
+
+This document outlines the backend API endpoints and data structures for the 
+payment/subscription system in the Skriber frontend.
+
+BASE URL: https://api.skriber.in/api/v1
+
+================================================================================
+OVERVIEW
+================================================================================
+
+Free Trial:
+- 5 meetings total (no time limit)
+- No credit card required
+- Automatic on signup
+
+Pro Plan:
+- ₹1,085/month
+- 50 meetings per month
+- Unlimited duration
+- Monthly billing cycle
+
+================================================================================
+AUTHENTICATION
+================================================================================
+
+All endpoints (except /plans and /webhook) require authentication.
+
+Include JWT token in Authorization header:
+Authorization: Bearer <your_jwt_token>
+
+Get token from:
+POST /api/v1/auth/token
+POST /api/v1/auth/google/callback
+
+================================================================================
+1. SUBSCRIPTION PLANS
+================================================================================
+
+Endpoint: GET /api/v1/subscriptions/plans
+Auth Required: No
+Description: Returns list of available subscription plans
+
+Response Format:
+[
+  {
+    "id": "free",
+    "name": "Free Trial",
+    "price": 0,
+    "currency": "INR",
+    "meetings_limit": 5,
+    "duration_limit": null,
+    "features": [
+      "5 meetings included",
+      "HD video recording",
+      "Auto transcription",
+      "Cloud storage",
+      "Basic support"
+    ]
+  },
+  {
+    "id": "pro",
+    "name": "Pro",
+    "price": 1085,
+    "currency": "INR",
+    "meetings_limit": 50,
+    "duration_limit": null,
+    "features": [
+      "50 meetings per month",
+      "Unlimited duration",
+      "HD video recording",
+      "Auto transcription",
+      "Priority cloud storage",
+      "Priority support",
+      "Advanced analytics",
+      "Team collaboration"
+    ]
+  }
+]
+
+Example Request:
+curl https://api.skriber.in/api/v1/subscriptions/plans
+
+Notes:
+- price is in INR (rupees, not paise)
+- meetings_limit: number of meetings allowed
+- duration_limit: always null (unlimited duration)
+- id values: "free" or "pro" (use these in checkout)
+
+================================================================================
+2. CURRENT SUBSCRIPTION
+================================================================================
+
+Endpoint: GET /api/v1/subscriptions/current
+Auth Required: Yes
+Description: Returns the current user's subscription details
+
+Response Format:
+{
+  "id": "sub_123456",
+  "user_id": "user_789",
+  "plan_id": "free",
+  "plan_name": "Free Trial",
+  "status": "trial",
+  "meetings_used": 3,
+  "meetings_limit": 5,
+  "current_period_start": "2024-12-01T00:00:00Z",
+  "current_period_end": null,
+  "cancel_at_period_end": false
+}
+
+Status Values:
+- "trial" - Free trial active
+- "active" - Paid subscription active
+- "cancelled" - Subscription cancelled (still active until period end)
+- "expired" - Subscription expired
+
+Example Request:
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/current
+
+Notes:
+- plan_id will be "free" or "pro"
+- current_period_start/end are null for trial users
+- current_period_end is when subscription renews (for Pro users)
+
+================================================================================
+3. USAGE STATISTICS
+================================================================================
+
+Endpoint: GET /api/v1/subscriptions/usage
+Auth Required: Yes
+Description: Returns current usage statistics for the user
+
+Response Format:
+{
+  "meetings_used": 3,
+  "meetings_limit": 5,
+  "meetings_remaining": 2,
+  "plan_name": "free",
+  "is_trial": true,
+  "can_record": true
+}
+
+Example Request:
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/usage
+
+Important Fields:
+- can_record: false when meetings_used >= meetings_limit
+- is_trial: true for free trial users, false for Pro users
+- meetings_remaining: calculated as (meetings_limit - meetings_used)
+
+Use Case:
+Check can_record before allowing user to start a new recording.
+If false, show upgrade modal.
+
+================================================================================
+4. CREATE CHECKOUT SESSION
+================================================================================
+
+Endpoint: POST /api/v1/subscriptions/checkout
+Auth Required: Yes
+Description: Creates a payment checkout session for Razorpay
+
+Request Body:
+{
+  "plan_id": "pro"
+}
+
+Response Format:
+{
+  "order_id": "order_xyz789",
+  "key_id": "rzp_live_RrYRiWs7SwQ3MI",
+  "amount": 108500,
+  "currency": "INR"
+}
+
+Example Request:
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"plan_id":"pro"}' \
+  https://api.skriber.in/api/v1/subscriptions/checkout
+
+Notes:
+- plan_id must be "pro" (cannot checkout for free plan)
+- amount is in paise (108500 = ₹1,085)
+- order_id is used in Razorpay checkout
+- key_id is Razorpay public key
+
+Frontend Integration:
+Use the response to open Razorpay checkout modal (see section below)
+
+================================================================================
+5. PAYMENT WEBHOOK (BACKEND ONLY)
+================================================================================
+
+Endpoint: POST /api/v1/subscriptions/webhook
+Auth Required: No (verified by signature)
+Description: Webhook endpoint for Razorpay payment callbacks
+
+This endpoint is called by Razorpay, not by frontend.
+
+Webhook Events Handled:
+- payment.captured - Payment successful
+- payment.failed - Payment failed
+- subscription.activated - Subscription started
+- subscription.cancelled - Subscription cancelled
+
+Actions on Successful Payment:
+1. Updates user's subscription status to "active"
+2. Sets plan_id to "pro"
+3. Resets meetings_used to 0
+4. Sets current_period_start to now
+5. Sets current_period_end to now + 30 days
+
+Frontend Action:
+After successful payment, refresh subscription data:
+- Call GET /subscriptions/current
+- Call GET /subscriptions/usage
+
+================================================================================
+6. CANCEL SUBSCRIPTION
+================================================================================
+
+Endpoint: POST /api/v1/subscriptions/cancel
+Auth Required: Yes
+Description: Cancels the user's subscription at period end
+
+Response Format:
+{
+  "message": "Subscription will be cancelled at the end of your billing period",
+  "cancel_at": "2025-01-14T00:00:00Z"
+}
+
+Example Request:
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/cancel
+
+Notes:
+- Subscription remains active until current_period_end
+- User can still use Pro features until period end
+- cancel_at_period_end flag is set to true
+- User can resume before period end
+
+================================================================================
+7. RESUME SUBSCRIPTION
+================================================================================
+
+Endpoint: POST /api/v1/subscriptions/resume
+Auth Required: Yes
+Description: Resumes a cancelled subscription before period end
+
+Response Format:
+{
+  "message": "Subscription resumed successfully"
+}
+
+Example Request:
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/resume
+
+Notes:
+- Only works if subscription is cancelled but not expired
+- Removes cancel_at_period_end flag
+- Subscription continues normally
+
+================================================================================
+8. PAYMENT HISTORY
+================================================================================
+
+Endpoint: GET /api/v1/subscriptions/payments
+Auth Required: Yes
+Description: Returns user's payment history
+
+Response Format:
+[
+  {
+    "id": "pay_123",
+    "amount": 1085,
+    "currency": "INR",
+    "status": "succeeded",
+    "created_at": "2024-12-14T10:30:00Z",
+    "invoice_url": null
+  }
+]
+
+Example Request:
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/payments
+
+Notes:
+- amount is in rupees (not paise)
+- status: "succeeded", "pending", or "failed"
+- invoice_url may be null
+- Sorted by created_at (newest first)
+
+================================================================================
+9. CUSTOMER PORTAL
+================================================================================
+
+Endpoint: POST /api/v1/subscriptions/portal
+Auth Required: Yes
+Description: Returns URL to customer portal for managing payment methods
+
+Response Format:
+{
+  "portal_url": "https://dashboard.razorpay.com/customer/portal"
+}
+
+Example Request:
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.skriber.in/api/v1/subscriptions/portal
+
+Notes:
+- Redirect user to portal_url
+- User can manage payment methods
+- User can view invoices
+
+================================================================================
+RAZORPAY FRONTEND INTEGRATION
+================================================================================
+
+Step 1: Install Razorpay SDK
+-----------------------------
+npm install razorpay
+
+Or include script in HTML:
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+Step 2: Create Checkout Function
+---------------------------------
+async function upgradeToProPlan(userToken) {
+  // 1. Create checkout session
+  const response = await fetch('https://api.skriber.in/api/v1/subscriptions/checkout', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${userToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ plan_id: 'pro' })
+  });
+  
+  const checkoutData = await response.json();
+  
+  // 2. Open Razorpay checkout
+  const options = {
+    key: checkoutData.key_id,
+    amount: checkoutData.amount,
+    currency: checkoutData.currency,
+    order_id: checkoutData.order_id,
+    name: 'Skriber',
+    description: 'Pro Plan - ₹1,085/month',
+    image: 'https://skriber.in/logo.png',
+    handler: async function(razorpayResponse) {
+      // 3. Payment successful!
+      console.log('Payment successful:', razorpayResponse);
+      
+      // 4. Refresh subscription data
+      await refreshSubscriptionData(userToken);
+      
+      // 5. Show success message and redirect
+      alert('Payment successful! You now have Pro access.');
+      window.location.href = '/dashboard';
+    },
+    prefill: {
+      email: user.email,
+      contact: user.phone
+    },
+    theme: {
+      color: '#3399cc'
+    },
+    modal: {
+      ondismiss: function() {
+        console.log('Payment cancelled by user');
+      }
+    }
+  };
+  
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+async function refreshSubscriptionData(userToken) {
+  // Refresh current subscription
+  const subscription = await fetch('https://api.skriber.in/api/v1/subscriptions/current', {
+    headers: { 'Authorization': `Bearer ${userToken}` }
+  }).then(r => r.json());
+  
+  // Refresh usage
+  const usage = await fetch('https://api.skriber.in/api/v1/subscriptions/usage', {
+    headers: { 'Authorization': `Bearer ${userToken}` }
+  }).then(r => r.json());
+  
+  // Update UI
+  updateSubscriptionUI(subscription, usage);
+}
+
+Step 3: Check Before Recording
+-------------------------------
+async function startRecording(userToken) {
+  // Check if user can record
+  const usage = await fetch('https://api.skriber.in/api/v1/subscriptions/usage', {
+    headers: { 'Authorization': `Bearer ${userToken}` }
+  }).then(r => r.json());
+  
+  if (!usage.can_record) {
+    // Show upgrade modal
+    showUpgradeModal();
+    return;
+  }
+  
+  // Proceed with recording
+  startMeetingRecording();
+}
+
+================================================================================
+BUSINESS LOGIC IMPLEMENTATION
+================================================================================
+
+1. Meeting Recording Check
+---------------------------
+Before allowing a user to start a new recording:
+
+1. Call GET /subscriptions/usage
+2. Check can_record field
+3. If false: Show upgrade modal
+4. If true: Allow recording
+
+2. Increment Usage
+------------------
+After a meeting recording is completed:
+
+Backend automatically increments meetings_used counter.
+Frontend should refresh usage data after recording ends.
+
+3. Monthly Reset (for Pro users)
+---------------------------------
+Backend automatically resets meetings_used to 0 at the start of each 
+billing period (current_period_end).
+
+Frontend should:
+- Display current_period_end to user
+- Show "Resets on [date]" message
+
+4. Trial to Pro Upgrade Flow
+-----------------------------
+1. User clicks "Upgrade to Pro"
+2. Call POST /subscriptions/checkout
+3. Open Razorpay checkout with response data
+4. User completes payment
+5. Razorpay calls webhook (backend handles)
+6. Frontend refreshes subscription data
+7. User sees Pro status and 50 meetings/month
+
+================================================================================
+ERROR HANDLING
+================================================================================
+
+HTTP Status Codes:
+- 200: Success
+- 400: Bad request (invalid plan_id, etc.)
+- 401: Unauthorized (missing or invalid token)
+- 403: Forbidden (limit exceeded)
+- 404: Not found (no subscription, etc.)
+- 500: Server error
+
+Error Response Format:
+{
+  "detail": "Error message here"
+}
+
+Or for limit exceeded:
+{
+  "detail": {
+    "error": "free_limit_exceeded",
+    "message": "You've used all 5 free meetings. Upgrade to Pro!",
+    "meetings_used": 5,
+    "meetings_limit": 5,
+    "plan_name": "free",
+    "upgrade_required": true
+  }
+}
+
+Handle Errors:
+try {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = await response.json();
+    if (error.detail?.upgrade_required) {
+      showUpgradeModal();
+    } else {
+      showErrorMessage(error.detail);
+    }
+  }
+} catch (error) {
+  console.error('API error:', error);
+}
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+Subscription Plans:
+- [ ] Can fetch plans without authentication
+- [ ] Plans show correct pricing (₹0 and ₹1,085)
+- [ ] Plans show correct features
+
+Current Subscription:
+- [ ] New users get free trial automatically
+- [ ] Trial users show status: "trial"
+- [ ] Pro users show status: "active"
+- [ ] Cancelled users show cancel_at_period_end: true
+
+Usage Statistics:
+- [ ] Free trial users see 5 meetings limit
+- [ ] Pro users see 50 meetings limit
+- [ ] can_record is false when limit reached
+- [ ] is_trial is true for free users
+
+Checkout Flow:
+- [ ] Can create checkout session for Pro plan
+- [ ] Cannot create checkout for free plan
+- [ ] Razorpay modal opens with correct amount
+- [ ] Payment success updates subscription
+
+Webhook:
+- [ ] Successful payment activates Pro subscription
+- [ ] meetings_used resets to 0
+- [ ] current_period_start and end are set
+- [ ] Failed payment doesn't change subscription
+
+Cancel/Resume:
+- [ ] Can cancel active Pro subscription
+- [ ] Subscription remains active until period end
+- [ ] Can resume cancelled subscription
+- [ ] Cannot resume expired subscription
+
+Payment History:
+- [ ] Shows all successful payments
+- [ ] Displays correct amounts
+- [ ] Sorted by date (newest first)
+
+Meeting Recording:
+- [ ] Free users blocked after 5 meetings
+- [ ] Pro users blocked after 50 meetings/month
+- [ ] Upgrade modal shows when limit reached
+- [ ] Usage counter increments after recording
+
+Monthly Reset:
+- [ ] Pro users' meetings_used resets monthly
+- [ ] current_period_start and end update
+- [ ] Free trial users don't get reset
+
+================================================================================
+ENVIRONMENT SETUP
+================================================================================
+
+Development:
+- Base URL: https://api.skriber.in/api/v1
+- Razorpay: Test mode keys
+- Test cards: 4111 1111 1111 1111
+
+Production:
+- Base URL: https://api.skriber.in/api/v1
+- Razorpay: Live mode keys
+- Real payment methods
+
+================================================================================
+COMMON ISSUES & SOLUTIONS
+================================================================================
+
+Issue: "Unauthorized" error
+Solution: Check JWT token is valid and included in Authorization header
+
+Issue: "Plan not found" error
+Solution: Use plan_id "pro" (not "pro_monthly")
+
+Issue: Razorpay checkout not opening
+Solution: Ensure Razorpay script is loaded before calling checkout
+
+Issue: Payment successful but subscription not updated
+Solution: Wait a few seconds for webhook processing, then refresh
+
+Issue: can_record always false
+Solution: Check meetings_used hasn't exceeded meetings_limit
+
+Issue: Usage not incrementing
+Solution: Backend handles this automatically after recording completes
+
+================================================================================
+API RATE LIMITS
+================================================================================
+
+No rate limits currently enforced.
+
+Recommended polling intervals:
+- Subscription status: Every 30 seconds during payment flow
+- Usage statistics: After each recording completion
+- Payment history: On page load only
+
+================================================================================
+SUPPORT & CONTACT
+================================================================================
+
+Backend API Issues:
+- Check logs: kubectl logs -f deployment/skriber-backend -n skriber
+- Database: PGPASSWORD=user_pass123 psql -h 34.100.186.16 -U skriber_user -d skriber
+
+Razorpay Issues:
+- Dashboard: https://dashboard.razorpay.com/
+- Support: https://razorpay.com/support/
+
+API Documentation:
+- This file: FRONTEND_API_DOCUMENTATION.txt
+- Integration guide: frontend-integration-guide.txt
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Endpoints Summary:
+GET    /subscriptions/plans           - List plans (no auth)
+GET    /subscriptions/current         - Current subscription (auth)
+GET    /subscriptions/usage           - Usage stats (auth)
+POST   /subscriptions/checkout        - Create checkout (auth)
+POST   /subscriptions/webhook         - Payment webhook (no auth)
+POST   /subscriptions/cancel          - Cancel subscription (auth)
+POST   /subscriptions/resume          - Resume subscription (auth)
+GET    /subscriptions/payments        - Payment history (auth)
+POST   /subscriptions/portal          - Customer portal (auth)
+
+Plan IDs:
+- "free" - Free trial (5 meetings)
+- "pro" - Pro plan (₹1,085/month, 50 meetings)
+
+Status Values:
+- "trial" - Free trial active
+- "active" - Pro subscription active
+- "cancelled" - Cancelled but still active
+- "expired" - Subscription expired
+
+Key Fields:
+- can_record - Boolean, check before recording
+- is_trial - Boolean, true for free users
+- meetings_used - Current usage count
+- meetings_limit - Maximum allowed
+- current_period_end - When subscription renews
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+
+Last Updated: December 14, 2025
+Version: 1.0
+Backend Version: v-frontend-ready
+
+For questions or issues, contact backend team.
+
+================================================================================

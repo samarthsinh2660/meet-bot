@@ -9,10 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/context/AuthContext';
 import { useChangePassword } from '@/hooks/useAuth';
-import { User, Lock, Bell, Shield, Loader2, Eye, EyeOff, Check } from 'lucide-react';
+import { useSubscription, useUsage, useCreateCheckout, useCancelSubscription, useCustomerPortal } from '@/hooks/useSubscription';
+import { User, Lock, Bell, Shield, Loader2, Eye, EyeOff, Check, Crown, Zap, CreditCard, Calendar } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { format } from 'date-fns';
 
 const passwordSchema = z.object({
   current_password: z.string().min(1, 'Current password is required'),
@@ -33,8 +36,21 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 export default function Settings() {
   const { user } = useAuth();
   const changePassword = useChangePassword();
+  const { data: subscription } = useSubscription();
+  const { data: usage } = useUsage();
+  const createCheckout = useCreateCheckout();
+  const cancelSubscription = useCancelSubscription();
+  const customerPortal = useCustomerPortal();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Subscription data
+  const isPro = subscription?.plan_id === 'pro' && subscription?.status === 'active';
+  const isTrial = subscription?.status === 'trial' || usage?.is_trial;
+  const isCancelled = subscription?.cancel_at_period_end;
+  const meetingsUsed = usage?.meetings_used ?? 0;
+  const meetingsLimit = usage?.meetings_limit ?? 5;
+  const usagePercent = Math.min((meetingsUsed / meetingsLimit) * 100, 100);
 
   const {
     register,
@@ -128,6 +144,120 @@ export default function Settings() {
                   ))}
                 </div>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Subscription Section */}
+        <Card className={`glass-card border-border/50 ${isPro ? 'glow-purple' : ''}`}>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              <CardTitle>Subscription</CardTitle>
+            </div>
+            <CardDescription>Manage your subscription and billing</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Plan */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-primary/20' : 'bg-secondary'}`}>
+                  {isPro ? <Crown className="w-6 h-6 text-primary" /> : <Zap className="w-6 h-6 text-muted-foreground" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-foreground">{isPro ? 'Pro Plan' : 'Free Trial'}</h4>
+                    {isCancelled && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-500">Cancelling</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isPro ? '₹1,085/month • 50 meetings/month' : '5 meetings total • No expiration'}
+                  </p>
+                </div>
+              </div>
+              {!isPro ? (
+                <Button 
+                  variant="hero" 
+                  onClick={() => createCheckout.mutate('pro')}
+                  disabled={createCheckout.isPending}
+                  className="w-full sm:w-auto"
+                >
+                  {createCheckout.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Crown className="w-4 h-4 mr-2" />
+                      Upgrade to Pro
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={() => customerPortal.mutate()}
+                  disabled={customerPortal.isPending}
+                  className="w-full sm:w-auto"
+                >
+                  Manage Billing
+                </Button>
+              )}
+            </div>
+
+            {/* Usage */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Meetings used this {isPro ? 'month' : 'trial'}</span>
+                <span className="text-sm font-medium text-foreground">{meetingsUsed} / {meetingsLimit}</span>
+              </div>
+              <Progress value={usagePercent} className="h-2" />
+              {isPro && subscription?.current_period_end && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  <Calendar className="w-3 h-3 inline mr-1" />
+                  Resets on {format(new Date(subscription.current_period_end), 'MMM d, yyyy')}
+                </p>
+              )}
+            </div>
+
+            {/* Cancel/Resume Subscription */}
+            {isPro && (
+              <>
+                <Separator className="bg-border/50" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {isCancelled ? 'Resume Subscription' : 'Cancel Subscription'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCancelled 
+                        ? 'Your subscription will end at the current period. Resume to continue.' 
+                        : 'You can cancel anytime. Access continues until period end.'}
+                    </p>
+                  </div>
+                  {isCancelled ? (
+                    <Button 
+                      variant="outline"
+                      onClick={() => cancelSubscription.mutate()}
+                      disabled={cancelSubscription.isPending}
+                      className="w-full sm:w-auto"
+                    >
+                      Resume
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      className="text-destructive hover:text-destructive w-full sm:w-auto"
+                      onClick={() => cancelSubscription.mutate()}
+                      disabled={cancelSubscription.isPending}
+                    >
+                      Cancel Plan
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

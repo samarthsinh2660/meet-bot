@@ -2,9 +2,9 @@ import { apiClient } from './client';
 
 // Subscription types
 export interface SubscriptionPlan {
-  id: string;
+  id: string; // "free" or "pro"
   name: string;
-  price: number;
+  price: number; // in INR (rupees, not paise)
   currency: string;
   meetings_limit: number;
   duration_limit: number | null; // null = unlimited
@@ -14,13 +14,13 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   id: string;
   user_id: string;
-  plan_id: string;
+  plan_id: string; // "free" or "pro"
   plan_name: string;
   status: 'active' | 'cancelled' | 'expired' | 'trial';
   meetings_used: number;
   meetings_limit: number;
-  current_period_start: string;
-  current_period_end: string;
+  current_period_start: string | null;
+  current_period_end: string | null;
   cancel_at_period_end: boolean;
 }
 
@@ -28,23 +28,43 @@ export interface UsageStats {
   meetings_used: number;
   meetings_limit: number;
   meetings_remaining: number;
-  plan_name: string;
+  plan_name: string; // "free" or "pro"
   is_trial: boolean;
   can_record: boolean;
 }
 
-export interface CreateCheckoutResponse {
-  checkout_url: string;
-  session_id: string;
+// Razorpay checkout response
+export interface RazorpayCheckoutResponse {
+  order_id: string;
+  key_id: string;
+  amount: number; // in paise (108500 = ₹1,085)
+  currency: string;
 }
 
 export interface PaymentHistory {
   id: string;
-  amount: number;
+  amount: number; // in rupees
   currency: string;
   status: 'succeeded' | 'pending' | 'failed';
   created_at: string;
-  invoice_url?: string;
+  invoice_url: string | null;
+}
+
+// Razorpay payment response (from checkout handler)
+export interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+// Error response for limit exceeded
+export interface LimitExceededError {
+  error: string;
+  message: string;
+  meetings_used: number;
+  meetings_limit: number;
+  plan_name: string;
+  upgrade_required: boolean;
 }
 
 // API functions
@@ -67,8 +87,8 @@ export const subscriptionApi = {
     return response.data;
   },
 
-  // Create checkout session (redirects to payment gateway)
-  createCheckout: async (planId: string): Promise<CreateCheckoutResponse> => {
+  // Create checkout session (returns Razorpay order details)
+  createCheckout: async (planId: string): Promise<RazorpayCheckoutResponse> => {
     const response = await apiClient.post('/api/v1/subscriptions/checkout', {
       plan_id: planId,
     });

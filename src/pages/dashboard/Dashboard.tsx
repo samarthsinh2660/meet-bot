@@ -41,7 +41,7 @@ export default function Dashboard() {
   const canRecord = usage?.can_record ?? (currentUsage < maxUsage);
 
   const handleUpgrade = () => {
-    createCheckout.mutate('pro_monthly');
+    createCheckout.mutate('pro');
   };
 
   // Get recent recordings (last 5)

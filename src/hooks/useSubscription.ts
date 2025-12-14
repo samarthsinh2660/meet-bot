@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { subscriptionApi } from '@/api/subscription';
+import { subscriptionApi, RazorpayCheckoutResponse } from '@/api/subscription';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 // Query keys
 export const subscriptionKeys = {
@@ -38,13 +39,119 @@ export function useUsage() {
   });
 }
 
-// Create checkout session
+// Razorpay type declaration
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  order_id: string;
+  name: string;
+  description: string;
+  image?: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill?: {
+    email?: string;
+    contact?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  close: () => void;
+}
+
+// Load Razorpay script dynamically
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
+// Create checkout session and open Razorpay
 export function useCreateCheckout() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
   return useMutation({
-    mutationFn: (planId: string) => subscriptionApi.createCheckout(planId),
-    onSuccess: (data) => {
-      // Redirect to checkout page
-      window.location.href = data.checkout_url;
+    mutationFn: async (planId: string) => {
+      // Load Razorpay script first
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error('Failed to load payment gateway');
+      }
+
+      // Create checkout session
+      const checkoutData = await subscriptionApi.createCheckout(planId);
+      return checkoutData;
+    },
+    onSuccess: (checkoutData: RazorpayCheckoutResponse) => {
+      // Open Razorpay checkout modal
+      const options: RazorpayOptions = {
+        key: checkoutData.key_id,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency,
+        order_id: checkoutData.order_id,
+        name: 'Skriber',
+        description: 'Pro Plan - ₹1,085/month',
+        image: '/logo.png',
+        handler: async (response: RazorpayResponse) => {
+          // Payment successful
+          console.log('Payment successful:', response);
+          toast.success('Payment successful! Upgrading your account...');
+          
+          // Refresh subscription data
+          await queryClient.invalidateQueries({ queryKey: subscriptionKeys.current() });
+          await queryClient.invalidateQueries({ queryKey: subscriptionKeys.usage() });
+          
+          // Small delay for webhook processing
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: subscriptionKeys.current() });
+            queryClient.invalidateQueries({ queryKey: subscriptionKeys.usage() });
+            toast.success('You now have Pro access! Enjoy 50 meetings/month.');
+          }, 2000);
+        },
+        prefill: {
+          email: user?.email || '',
+        },
+        theme: {
+          color: '#8B5CF6', // Primary purple color
+        },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment cancelled by user');
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to create checkout session');
