@@ -27,8 +27,8 @@ const Navbar = () => {
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </a>
-            <a href="#meetings" className="text-muted-foreground hover:text-foreground transition-colors">
-              Meetings
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+              Pricing
             </a>
           </div>
 
@@ -69,8 +69,8 @@ const Navbar = () => {
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
                 How It Works
               </a>
-              <a href="#meetings" className="text-muted-foreground hover:text-foreground transition-colors">
-                Meetings
+              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                Pricing
               </a>
               <div className="flex flex-col gap-2 pt-4">
                 {isAuthenticated() ? (

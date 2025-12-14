@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,16 +15,34 @@ import {
   ArrowRight,
   Loader2,
   Activity,
+  Crown,
+  Zap,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { UsageBanner } from '@/components/UsageBanner';
+import { UpgradeModal } from '@/components/UpgradeModal';
+import { useUsage, useCreateCheckout } from '@/hooks/useSubscription';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: recordingsData, isLoading } = useRecordings();
   const { data: stats } = useRecordingStats();
+  const { data: usage } = useUsage();
+  const createCheckout = useCreateCheckout();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Extract recordings array
   const recordings = recordingsData?.recordings || [];
+
+  // Mock usage data for UI (will be replaced by real API data)
+  const currentUsage = usage?.meetings_used ?? stats?.total_recordings ?? 0;
+  const maxUsage = usage?.meetings_limit ?? 5;
+  const planName = usage?.plan_name ?? 'free';
+  const canRecord = usage?.can_record ?? (currentUsage < maxUsage);
+
+  const handleUpgrade = () => {
+    createCheckout.mutate('pro_monthly');
+  };
 
   // Get recent recordings (last 5)
   const recentRecordings = recordings.slice(0, 5);
@@ -38,6 +57,24 @@ export default function Dashboard() {
       title={`Welcome back, ${user?.username || 'User'}`}
       description="Here's what's happening with your meetings"
     >
+      {/* Usage Banner for Free Trial Users */}
+      <UsageBanner
+        currentUsage={currentUsage}
+        maxUsage={maxUsage}
+        planName={planName}
+        onUpgrade={() => setShowUpgradeModal(true)}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        currentUsage={currentUsage}
+        maxUsage={maxUsage}
+        onUpgrade={handleUpgrade}
+        isLoading={createCheckout.isPending}
+      />
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card className="glass-card border-border/50">

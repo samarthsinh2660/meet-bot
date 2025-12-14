@@ -52,7 +52,12 @@ apiClient.interceptors.response.use(
       removeAccessToken();
       // Only redirect if not already on auth pages
       if (!window.location.pathname.startsWith('/auth')) {
-        window.location.href = '/auth/login';
+        // If user is in the dashboard, send them to login. Otherwise, default to landing page.
+        if (window.location.pathname.startsWith('/dashboard')) {
+          window.location.href = '/auth/login';
+        } else {
+          window.location.href = '/';
+        }
       }
     }
     return Promise.reject(error);
