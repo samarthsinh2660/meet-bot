@@ -215,6 +215,27 @@ export function UpgradeModal({
         <p className="text-xs text-center text-muted-foreground mt-2">
           Secure payment • Cancel anytime • Instant access
         </p>
+
+        <p className="text-xs text-center text-muted-foreground mt-3 leading-relaxed">
+          By proceeding, you agree to our{' '}
+          <a
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Terms & Conditions
+          </a>{' '}
+          and{' '}
+          <a
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Privacy Policy
+          </a>
+        </p>
       </DialogContent>
     </Dialog>
   );

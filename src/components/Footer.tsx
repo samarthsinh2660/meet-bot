@@ -1,4 +1,4 @@
-import { Bot } from "lucide-react";
+import { POLICY_LINKS } from '@/constants/policyLinks';
 
 const Footer = () => {
   return (
@@ -14,10 +14,39 @@ const Footer = () => {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-4 sm:gap-8 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors">Support</a>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
+            <a
+              href={POLICY_LINKS.privacy}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href={POLICY_LINKS.terms}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Terms & Conditions
+            </a>
+            <a
+              href={POLICY_LINKS.refund}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Refund Policy
+            </a>
+            <a
+              href={POLICY_LINKS.contact}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Contact Us
+            </a>
           </div>
 
           {/* Copyright */}

@@ -208,7 +208,28 @@ export default function Register() {
             Continue with Google
           </Button>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-4 text-center text-xs text-muted-foreground leading-relaxed">
+            By signing up, you agree to our{' '}
+            <a
+              href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Privacy Policy
+            </a>
+          </p>
+
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link to="/auth/login" className="text-primary hover:underline font-medium">
               Sign in

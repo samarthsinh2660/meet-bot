@@ -451,6 +451,98 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Legal Section */}
+        <Card className="glass-card border-border/50">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              <CardTitle>Legal</CardTitle>
+            </div>
+            <CardDescription>View our policies and terms</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">Privacy Policy</p>
+                <p className="text-sm text-muted-foreground">How we handle your data</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <a
+                  href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View
+                </a>
+              </Button>
+            </div>
+            <Separator className="bg-border/50" />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">Terms & Conditions</p>
+                <p className="text-sm text-muted-foreground">Our terms of service</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <a
+                  href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View
+                </a>
+              </Button>
+            </div>
+            <Separator className="bg-border/50" />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">Refund Policy</p>
+                <p className="text-sm text-muted-foreground">Our refund and cancellation policy</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <a
+                  href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/refund"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View
+                </a>
+              </Button>
+            </div>
+            <Separator className="bg-border/50" />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">Contact Us</p>
+                <p className="text-sm text-muted-foreground">Get in touch with support</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <a
+                  href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/contact_us"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

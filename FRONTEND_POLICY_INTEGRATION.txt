@@ -1,0 +1,504 @@
+================================================================================
+SKRIBER - POLICY PAGES INTEGRATION GUIDE FOR FRONTEND
+================================================================================
+Last Updated: December 16, 2025
+Backend API: https://api.skriber.in/api/v1
+
+================================================================================
+📋 POLICY PAGE URLS
+================================================================================
+
+Privacy Policy:
+https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy
+
+Terms & Conditions:
+https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms
+
+Refund Policy:
+https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/refund
+
+Contact Us:
+https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/contact_us
+
+================================================================================
+📍 WHERE TO ADD THESE LINKS
+================================================================================
+
+1. FOOTER - All Pages
+   Add all 4 policy links in the footer section
+
+2. CHECKOUT PAGE - Before Payment Button
+   Add policy agreement text with links to Terms and Privacy Policy
+
+3. SIGNUP PAGE - Below Form
+   Add policy agreement text with links to Terms and Privacy Policy
+
+4. SETTINGS PAGE - Legal Section (Optional)
+   Add all policy links in account settings
+
+================================================================================
+💻 IMPLEMENTATION CODE
+================================================================================
+
+1. FOOTER COMPONENT
+-------------------
+
+import React from 'react';
+
+const Footer = () => {
+  return (
+    <footer className="site-footer">
+      <div className="footer-container">
+        {/* Other footer content */}
+        
+        <div className="footer-section legal-links">
+          <h4>Legal</h4>
+          <ul>
+            <li>
+              <a 
+                href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Terms & Conditions
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/refund" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Refund Policy
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/contact_us" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Contact Us
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+2. CHECKOUT PAGE COMPONENT
+---------------------------
+
+import React from 'react';
+
+const CheckoutPage = () => {
+  const handlePayment = async () => {
+    // Your payment logic here
+  };
+
+  return (
+    <div className="checkout-container">
+      <h2>Checkout</h2>
+      
+      {/* Plan details */}
+      <div className="plan-details">
+        <h3>Pro Plan - Yearly</h3>
+        <p className="price">₹10,788/year</p>
+        <p className="savings">Save ₹2,400 (18% off)</p>
+      </div>
+
+      {/* Policy Agreement - REQUIRED */}
+      <div className="policy-agreement">
+        <p>
+          By proceeding with payment, you agree to our{' '}
+          <a 
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="policy-link"
+          >
+            Terms & Conditions
+          </a>
+          {' '}and{' '}
+          <a 
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="policy-link"
+          >
+            Privacy Policy
+          </a>
+        </p>
+      </div>
+
+      {/* Payment Button */}
+      <button 
+        onClick={handlePayment}
+        className="payment-button"
+      >
+        Proceed to Payment
+      </button>
+    </div>
+  );
+};
+
+export default CheckoutPage;
+
+
+3. SIGNUP PAGE COMPONENT
+-------------------------
+
+import React, { useState } from 'react';
+
+const SignupPage = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    // Your signup logic here
+  };
+
+  return (
+    <div className="signup-container">
+      <h2>Sign Up for Skriber</h2>
+      
+      <form onSubmit={handleSignup}>
+        <input 
+          type="email" 
+          placeholder="Email"
+          value={formData.email}
+          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          required
+        />
+        <input 
+          type="password" 
+          placeholder="Password"
+          value={formData.password}
+          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          required
+        />
+        
+        {/* Policy Agreement - REQUIRED */}
+        <p className="signup-terms">
+          By signing up, you agree to our{' '}
+          <a 
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="policy-link"
+          >
+            Terms of Service
+          </a>
+          {' '}and{' '}
+          <a 
+            href="https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="policy-link"
+          >
+            Privacy Policy
+          </a>
+        </p>
+
+        <button type="submit" className="signup-button">
+          Sign Up
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default SignupPage;
+
+
+4. POLICY LINKS CONSTANTS (RECOMMENDED)
+----------------------------------------
+
+Create a constants file for easy management:
+
+// constants/policyLinks.js
+
+export const POLICY_LINKS = {
+  privacy: 'https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/privacy',
+  terms: 'https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/terms',
+  refund: 'https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/refund',
+  contact: 'https://merchant.razorpay.com/policy/PHXHvMVplCuYBX/contact_us'
+};
+
+// Usage in components:
+import { POLICY_LINKS } from './constants/policyLinks';
+
+<a href={POLICY_LINKS.privacy} target="_blank" rel="noopener noreferrer">
+  Privacy Policy
+</a>
+
+================================================================================
+🎨 RECOMMENDED CSS STYLING
+================================================================================
+
+/* Footer Policy Links */
+.footer-section.legal-links {
+  margin-top: 2rem;
+}
+
+.footer-section.legal-links h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.footer-section.legal-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section.legal-links li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-section.legal-links a {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.footer-section.legal-links a:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+/* Checkout Policy Agreement */
+.policy-agreement {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #0066cc;
+}
+
+.policy-agreement p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.policy-agreement .policy-link {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.policy-agreement .policy-link:hover {
+  text-decoration: underline;
+}
+
+/* Signup Terms */
+.signup-terms {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+.signup-terms .policy-link {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.signup-terms .policy-link:hover {
+  text-decoration: underline;
+}
+
+/* Payment Button */
+.payment-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.payment-button:hover {
+  background-color: #0052a3;
+}
+
+================================================================================
+✅ IMPLEMENTATION CHECKLIST
+================================================================================
+
+REQUIRED:
+□ Add policy links to footer on ALL pages
+□ Add policy agreement to checkout page (before payment button)
+□ Add policy agreement to signup page (below form)
+□ Use target="_blank" for all policy links
+□ Add rel="noopener noreferrer" to all policy links
+□ Test all links open correctly in new tab
+
+OPTIONAL:
+□ Create constants file for policy URLs
+□ Add policy links to settings/account page
+□ Style links to match website design
+□ Add hover effects to links
+□ Test on mobile devices
+
+================================================================================
+🧪 TESTING CHECKLIST
+================================================================================
+
+FUNCTIONALITY:
+□ Click Privacy Policy link - opens in new tab
+□ Click Terms & Conditions link - opens in new tab
+□ Click Refund Policy link - opens in new tab
+□ Click Contact Us link - opens in new tab
+□ All links work on desktop
+□ All links work on mobile
+□ Links visible on checkout page
+□ Links visible on signup page
+□ Links visible in footer
+
+PAYMENT FLOW:
+□ Navigate to checkout page
+□ Verify policy agreement is visible
+□ Click "Proceed to Payment"
+□ Razorpay should NOT block payment
+□ Payment should process successfully
+
+DESIGN:
+□ Links styled consistently
+□ Links have hover effects
+□ Text is readable
+□ Layout looks good on mobile
+□ Footer looks organized
+
+================================================================================
+⚠️ IMPORTANT NOTES
+================================================================================
+
+1. REQUIRED FOR PAYMENTS
+   These policy links are REQUIRED by Razorpay. Without them, payments will
+   be blocked with error: "Payment blocked as website does not match 
+   registered website(s)"
+
+2. ALWAYS USE target="_blank"
+   Policy pages should open in a new tab so users don't lose their place
+   on your website.
+
+3. SECURITY - rel="noopener noreferrer"
+   Always add rel="noopener noreferrer" when using target="_blank" to
+   prevent security vulnerabilities.
+
+4. MOBILE RESPONSIVE
+   Ensure policy links are easily clickable on mobile devices. Test on
+   different screen sizes.
+
+5. CHECKOUT PAGE IS CRITICAL
+   The policy agreement on the checkout page is MOST important. Users must
+   see and agree to policies before making payment.
+
+================================================================================
+🔄 UPDATING POLICY CONTENT
+================================================================================
+
+If you need to update policy content in the future:
+
+1. DO NOT change the URLs in your code
+2. Go to Razorpay Dashboard
+3. Navigate to: Settings → Website Details
+4. Edit the policy content there
+5. URLs remain the same, content updates automatically
+
+================================================================================
+📞 SUPPORT & QUESTIONS
+================================================================================
+
+Backend Team Contact:
+Email: support@skriber.in
+API Base URL: https://api.skriber.in/api/v1
+
+For Policy Content Updates:
+Login to Razorpay Dashboard: https://dashboard.razorpay.com/
+Navigate to: Settings → Website Details
+
+For Technical Issues:
+Contact backend team with:
+- Screenshot of the issue
+- Browser console errors (if any)
+- Steps to reproduce
+
+================================================================================
+🚀 DEPLOYMENT STEPS
+================================================================================
+
+1. DEVELOPMENT:
+   □ Implement policy links in components
+   □ Test all links locally
+   □ Verify styling matches design
+   □ Test on different browsers
+
+2. STAGING:
+   □ Deploy to staging environment
+   □ Test complete payment flow
+   □ Verify Razorpay doesn't block payments
+   □ Test on mobile devices
+
+3. PRODUCTION:
+   □ Deploy to production
+   □ Test one payment transaction
+   □ Monitor for any errors
+   □ Verify all policy links work
+
+4. POST-DEPLOYMENT:
+   □ Check analytics for 404 errors
+   □ Monitor payment success rate
+   □ Collect user feedback
+   □ Update documentation if needed
+
+================================================================================
+📊 EXPECTED RESULTS
+================================================================================
+
+BEFORE Implementation:
+❌ Razorpay blocks payments
+❌ Error: "Payment blocked as website does not match registered website(s)"
+❌ Users cannot complete checkout
+
+AFTER Implementation:
+✅ Razorpay allows payments
+✅ No blocking errors
+✅ Users can complete checkout successfully
+✅ Policy links visible in footer
+✅ Policy agreement visible on checkout
+✅ Compliant with Razorpay requirements
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
+Questions? Contact the backend team at support@skriber.in
