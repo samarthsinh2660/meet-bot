@@ -1,0 +1,713 @@
+================================================================================
+SKRIBER.IN - PAYMENT API JSON EXAMPLES
+================================================================================
+Complete request/response examples for all payment endpoints
+================================================================================
+
+================================================================================
+1. GET ALL PLANS
+================================================================================
+
+REQUEST:
+--------
+GET https://api.skriber.in/api/v1/subscriptions/plans
+Headers: (none required)
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+[
+  {
+    "id": "free",
+    "name": "Free Trial",
+    "price_monthly": 0,
+    "price_yearly": 0,
+    "currency": "INR",
+    "meetings_limit": 5,
+    "hours_limit": 2,
+    "features": [
+      "2 hours per month",
+      "5 meetings per month",
+      "Basic recording",
+      "Email support"
+    ]
+  },
+  {
+    "id": "pro",
+    "name": "Pro Plan",
+    "price_monthly": 1099,
+    "price_yearly": 899,
+    "currency": "INR",
+    "meetings_limit": 120,
+    "hours_limit": 60,
+    "features": [
+      "60 hours per month",
+      "120 meetings per month",
+      "HD recording",
+      "Advanced transcription",
+      "Calendar integration",
+      "Priority support",
+      "Export recordings"
+    ]
+  },
+  {
+    "id": "team",
+    "name": "Team Plan",
+    "price_monthly": 2999,
+    "price_yearly": 2699,
+    "currency": "INR",
+    "meetings_limit": 600,
+    "hours_limit": 300,
+    "features": [
+      "300 hours per month",
+      "600 meetings per month",
+      "HD recording",
+      "Advanced transcription",
+      "Calendar integration",
+      "Priority support",
+      "Export recordings",
+      "Team collaboration",
+      "Custom branding",
+      "API access"
+    ]
+  }
+]
+
+================================================================================
+2. GET CURRENT SUBSCRIPTION
+================================================================================
+
+REQUEST:
+--------
+GET https://api.skriber.in/api/v1/subscriptions/current
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+RESPONSE (Free Trial):
+----------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "id": "bdc70fc7-bb59-4cc3-bc85-388c473fbd3e",
+  "user_id": "b1b77c0a-5bba-4e14-a860-23ce2c2271c8",
+  "plan_id": "free",
+  "plan_name": "Free Trial",
+  "status": "trial",
+  "meetings_used": 3,
+  "meetings_limit": 5,
+  "current_period_start": null,
+  "current_period_end": null,
+  "cancel_at_period_end": false
+}
+
+RESPONSE (Active Pro):
+----------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "id": "c262df66-0d82-44e3-946d-af33ed4aa545",
+  "user_id": "b1b77c0a-5bba-4e14-a860-23ce2c2271c8",
+  "plan_id": "pro",
+  "plan_name": "Pro Plan",
+  "status": "active",
+  "meetings_used": 45,
+  "meetings_limit": 120,
+  "current_period_start": "2025-12-01T00:00:00Z",
+  "current_period_end": "2026-01-01T00:00:00Z",
+  "cancel_at_period_end": false
+}
+
+================================================================================
+3. GET USAGE STATS
+================================================================================
+
+REQUEST:
+--------
+GET https://api.skriber.in/api/v1/subscriptions/usage
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+RESPONSE (Free User):
+---------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "meetings_used": 3,
+  "meetings_limit": 5,
+  "meetings_remaining": 2,
+  "plan_name": "free",
+  "is_trial": true,
+  "can_record": true
+}
+
+RESPONSE (Pro User):
+--------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "meetings_used": 45,
+  "meetings_limit": 120,
+  "meetings_remaining": 75,
+  "plan_name": "pro",
+  "is_trial": false,
+  "can_record": true
+}
+
+================================================================================
+4. CREATE CHECKOUT - PRO MONTHLY
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "pro",
+  "billing_cycle": "monthly"
+}
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "order_id": "order_NXmjDj8sKT9pAB",
+  "key_id": "rzp_live_xxxxxxxxxxxxx",
+  "amount": 109900,
+  "currency": "INR"
+}
+
+================================================================================
+5. CREATE CHECKOUT - PRO YEARLY
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "pro",
+  "billing_cycle": "yearly"
+}
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "order_id": "order_NXmjDj8sKT9pAB",
+  "key_id": "rzp_live_xxxxxxxxxxxxx",
+  "amount": 89900,
+  "currency": "INR"
+}
+
+================================================================================
+6. CREATE CHECKOUT - TEAM MONTHLY
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "team",
+  "billing_cycle": "monthly"
+}
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "order_id": "order_NXmjDj8sKT9pAB",
+  "key_id": "rzp_live_xxxxxxxxxxxxx",
+  "amount": 299900,
+  "currency": "INR"
+}
+
+================================================================================
+7. CREATE CHECKOUT - TEAM YEARLY
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "team",
+  "billing_cycle": "yearly"
+}
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "order_id": "order_NXmjDj8sKT9pAB",
+  "key_id": "rzp_live_xxxxxxxxxxxxx",
+  "amount": 269900,
+  "currency": "INR"
+}
+
+================================================================================
+8. CHECKOUT ERROR - INVALID BILLING CYCLE
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "pro",
+  "billing_cycle": "quarterly"
+}
+
+RESPONSE:
+---------
+Status: 400 Bad Request
+Content-Type: application/json
+
+{
+  "detail": "Invalid billing_cycle. Must be 'monthly' or 'yearly'"
+}
+
+================================================================================
+9. CHECKOUT ERROR - PLAN NOT FOUND
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "enterprise",
+  "billing_cycle": "monthly"
+}
+
+RESPONSE:
+---------
+Status: 404 Not Found
+Content-Type: application/json
+
+{
+  "detail": "Plan not found"
+}
+
+================================================================================
+10. CHECKOUT ERROR - FREE PLAN
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/checkout
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "plan_id": "free",
+  "billing_cycle": "monthly"
+}
+
+RESPONSE:
+---------
+Status: 400 Bad Request
+Content-Type: application/json
+
+{
+  "detail": "Cannot create checkout for free plan"
+}
+
+================================================================================
+11. CANCEL SUBSCRIPTION
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/subscriptions/cancel
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "message": "Subscription will be cancelled at the end of the current period",
+  "cancel_at": "2026-01-01T00:00:00Z"
+}
+
+ERROR RESPONSE (No Active Subscription):
+-----------------------------------------
+Status: 404 Not Found
+Content-Type: application/json
+
+{
+  "detail": "No active subscription found"
+}
+
+================================================================================
+12. GET PAYMENT HISTORY
+================================================================================
+
+REQUEST:
+--------
+GET https://api.skriber.in/api/v1/payments/history
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+RESPONSE:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+[
+  {
+    "id": "c04295f5-23eb-474c-84a8-b90dabc929cf",
+    "amount": 109900,
+    "currency": "INR",
+    "status": "success",
+    "created_at": "2025-12-15T10:30:00Z",
+    "invoice_url": null
+  },
+  {
+    "id": "7d11dc7d-f16d-4c47-99ec-3de716f073f1",
+    "amount": 89900,
+    "currency": "INR",
+    "status": "success",
+    "created_at": "2025-11-15T15:45:00Z",
+    "invoice_url": null
+  },
+  {
+    "id": "b1b77c0a-5bba-4e14-a860-23ce2c2271c8",
+    "amount": 109900,
+    "currency": "INR",
+    "status": "pending",
+    "created_at": "2025-12-14T08:20:00Z",
+    "invoice_url": null
+  }
+]
+
+RESPONSE (No Payments):
+-----------------------
+Status: 200 OK
+Content-Type: application/json
+
+[]
+
+================================================================================
+13. LIMIT EXCEEDED - FREE PLAN (MEETINGS)
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/meetings/launch
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "meetings": ["https://meet.google.com/abc-defg-hij"],
+  "duration_min": 30,
+  "record": true
+}
+
+RESPONSE:
+---------
+Status: 403 Forbidden
+Content-Type: application/json
+
+{
+  "detail": {
+    "error": "free_limit_exceeded",
+    "message": "Free plan limit reached! You've used 5/5 meetings. Upgrade to Pro: ₹1,099/month (60 hrs, 120 meetings) or Team: ₹2,999/month (300 hrs, 600 meetings)",
+    "hours_used": 1.5,
+    "hours_limit": 2.0,
+    "meetings_used": 5,
+    "meetings_limit": 5,
+    "limit_type": "meetings",
+    "plan_name": "free",
+    "upgrade_required": true,
+    "plans": {
+      "pro": {
+        "price": "₹1,099/month",
+        "hours": 60,
+        "meetings": 120
+      },
+      "team": {
+        "price": "₹2,999/month",
+        "hours": 300,
+        "meetings": 600
+      }
+    }
+  }
+}
+
+================================================================================
+14. LIMIT EXCEEDED - FREE PLAN (HOURS)
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/meetings/launch
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "meetings": ["https://meet.google.com/abc-defg-hij"],
+  "duration_min": 60,
+  "record": true
+}
+
+RESPONSE:
+---------
+Status: 403 Forbidden
+Content-Type: application/json
+
+{
+  "detail": {
+    "error": "free_limit_exceeded",
+    "message": "Free plan limit reached! You've used 1.8/2.0 hours. Upgrade to Pro: ₹1,099/month (60 hrs, 120 meetings) or Team: ₹2,999/month (300 hrs, 600 meetings)",
+    "hours_used": 1.8,
+    "hours_limit": 2.0,
+    "meetings_used": 4,
+    "meetings_limit": 5,
+    "limit_type": "hours",
+    "plan_name": "free",
+    "upgrade_required": true,
+    "plans": {
+      "pro": {
+        "price": "₹1,099/month",
+        "hours": 60,
+        "meetings": 120
+      },
+      "team": {
+        "price": "₹2,999/month",
+        "hours": 300,
+        "meetings": 600
+      }
+    }
+  }
+}
+
+================================================================================
+15. LIMIT EXCEEDED - PRO PLAN (HOURS)
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/meetings/launch
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "meetings": ["https://meet.google.com/abc-defg-hij"],
+  "duration_min": 120,
+  "record": true
+}
+
+RESPONSE:
+---------
+Status: 403 Forbidden
+Content-Type: application/json
+
+{
+  "detail": {
+    "error": "monthly_limit_exceeded",
+    "message": "Monthly limit reached! Hours: 59.5/60.0. Your limits will reset on your next billing cycle.",
+    "hours_used": 59.5,
+    "hours_limit": 60.0,
+    "meetings_used": 85,
+    "meetings_limit": 120,
+    "limit_type": "hours",
+    "plan_name": "pro",
+    "period_end": "2026-01-01T00:00:00Z",
+    "reset_date": "January 01, 2026",
+    "upgrade_suggestion": "Upgrade to Team plan for 300 hrs/month and 600 meetings/month at ₹2,999/month"
+  }
+}
+
+================================================================================
+16. LIMIT EXCEEDED - PRO PLAN (MEETINGS)
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/meetings/launch
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "meetings": ["https://meet.google.com/abc-defg-hij"],
+  "duration_min": 30,
+  "record": true
+}
+
+RESPONSE:
+---------
+Status: 403 Forbidden
+Content-Type: application/json
+
+{
+  "detail": {
+    "error": "monthly_limit_exceeded",
+    "message": "Monthly limit reached! Meetings: 120/120. Your limits will reset on your next billing cycle.",
+    "hours_used": 45.5,
+    "hours_limit": 60.0,
+    "meetings_used": 120,
+    "meetings_limit": 120,
+    "limit_type": "meetings",
+    "plan_name": "pro",
+    "period_end": "2026-01-01T00:00:00Z",
+    "reset_date": "January 01, 2026",
+    "upgrade_suggestion": "Upgrade to Team plan for 300 hrs/month and 600 meetings/month at ₹2,999/month"
+  }
+}
+
+================================================================================
+17. LIMIT EXCEEDED - TEAM PLAN
+================================================================================
+
+REQUEST:
+--------
+POST https://api.skriber.in/api/v1/meetings/launch
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Content-Type: application/json
+
+Body:
+{
+  "meetings": ["https://meet.google.com/abc-defg-hij"],
+  "duration_min": 60,
+  "record": true
+}
+
+RESPONSE:
+---------
+Status: 403 Forbidden
+Content-Type: application/json
+
+{
+  "detail": {
+    "error": "monthly_limit_exceeded",
+    "message": "Monthly limit reached! Hours: 300.0/300.0. Your limits will reset on your next billing cycle.",
+    "hours_used": 300.0,
+    "hours_limit": 300.0,
+    "meetings_used": 550,
+    "meetings_limit": 600,
+    "limit_type": "hours",
+    "plan_name": "team",
+    "period_end": "2026-01-01T00:00:00Z",
+    "reset_date": "January 01, 2026",
+    "upgrade_suggestion": null
+  }
+}
+
+================================================================================
+18. UNAUTHORIZED ERROR
+================================================================================
+
+REQUEST:
+--------
+GET https://api.skriber.in/api/v1/subscriptions/current
+Headers:
+  (no Authorization header)
+
+RESPONSE:
+---------
+Status: 401 Unauthorized
+Content-Type: application/json
+
+{
+  "detail": "Not authenticated"
+}
+
+================================================================================
+19. RAZORPAY SUCCESS CALLBACK
+================================================================================
+
+This is what Razorpay returns to your handler function after successful payment:
+
+{
+  "razorpay_payment_id": "pay_NXmjDj8sKT9pAB",
+  "razorpay_order_id": "order_NXmjDj8sKT9pAB",
+  "razorpay_signature": "9ef4dffbfd84f1318f6739a3ce19f9d85851857ae648f114332d8401e0949a3d"
+}
+
+After receiving this:
+1. Show success message to user
+2. Wait 2-3 seconds for webhook to process
+3. Redirect to dashboard
+4. Call GET /subscriptions/current to refresh status
+
+================================================================================
+20. RAZORPAY FAILURE CALLBACK
+================================================================================
+
+This is what Razorpay returns when payment fails:
+
+{
+  "error": {
+    "code": "BAD_REQUEST_ERROR",
+    "description": "Payment failed",
+    "source": "customer",
+    "step": "payment_authentication",
+    "reason": "payment_failed",
+    "metadata": {
+      "order_id": "order_NXmjDj8sKT9pAB",
+      "payment_id": "pay_NXmjDj8sKT9pAB"
+    }
+  }
+}
+
+Handle this by:
+1. Show error message to user
+2. Allow them to retry payment
+3. Don't redirect or change anything
+
+================================================================================
+END OF JSON EXAMPLES
+================================================================================

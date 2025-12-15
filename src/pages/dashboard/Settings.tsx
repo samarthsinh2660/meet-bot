@@ -13,9 +13,10 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/context/AuthContext';
 import { useChangePassword } from '@/hooks/useAuth';
 import { useSubscription, useUsage, useCreateCheckout, useCancelSubscription, useCustomerPortal } from '@/hooks/useSubscription';
-import { User, Lock, Bell, Shield, Loader2, Eye, EyeOff, Check, Crown, Zap, CreditCard, Calendar } from 'lucide-react';
+import { User, Lock, Bell, Shield, Loader2, Eye, EyeOff, Check, Crown, Zap, CreditCard, Calendar, Users } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
+import type { BillingCycle } from '@/api/subscription';
 
 const passwordSchema = z.object({
   current_password: z.string().min(1, 'Current password is required'),
@@ -46,11 +47,22 @@ export default function Settings() {
 
   // Subscription data
   const isPro = subscription?.plan_id === 'pro' && subscription?.status === 'active';
+  const isTeam = subscription?.plan_id === 'team' && subscription?.status === 'active';
+  const isPaid = isPro || isTeam;
   const isTrial = subscription?.status === 'trial' || usage?.is_trial;
   const isCancelled = subscription?.cancel_at_period_end;
   const meetingsUsed = usage?.meetings_used ?? 0;
   const meetingsLimit = usage?.meetings_limit ?? 5;
   const usagePercent = Math.min((meetingsUsed / meetingsLimit) * 100, 100);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('yearly');
+
+  // Plan display info
+  const getPlanInfo = () => {
+    if (isTeam) return { name: 'Team Plan', price: '₹2,699/year', meetings: '600 meetings/month', icon: Users };
+    if (isPro) return { name: 'Pro Plan', price: '₹899/year', meetings: '120 meetings/month', icon: Crown };
+    return { name: 'Free Trial', price: 'Free', meetings: '5 meetings total', icon: Zap };
+  };
+  const planInfo = getPlanInfo();
 
   const {
     register,
@@ -161,25 +173,25 @@ export default function Settings() {
             {/* Current Plan */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-primary/20' : 'bg-secondary'}`}>
-                  {isPro ? <Crown className="w-6 h-6 text-primary" /> : <Zap className="w-6 h-6 text-muted-foreground" />}
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPaid ? 'bg-primary/20' : 'bg-secondary'}`}>
+                  <planInfo.icon className={`w-6 h-6 ${isPaid ? 'text-primary' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-foreground">{isPro ? 'Pro Plan' : 'Free Trial'}</h4>
+                    <h4 className="font-semibold text-foreground">{planInfo.name}</h4>
                     {isCancelled && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-500">Cancelling</span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {isPro ? '₹899/month • 50 meetings/month' : '5 meetings total • No expiration'}
+                    {planInfo.price} • {planInfo.meetings}
                   </p>
                 </div>
               </div>
-              {!isPro ? (
+              {!isPaid ? (
                 <Button 
                   variant="hero" 
-                  onClick={() => createCheckout.mutate('pro')}
+                  onClick={() => createCheckout.mutate({ planId: 'pro', billingCycle })}
                   disabled={createCheckout.isPending}
                   className="w-full sm:w-auto"
                 >
@@ -210,11 +222,11 @@ export default function Settings() {
             {/* Usage */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Meetings used this {isPro ? 'month' : 'trial'}</span>
+                <span className="text-sm text-muted-foreground">Meetings used this {isPaid ? 'month' : 'trial'}</span>
                 <span className="text-sm font-medium text-foreground">{meetingsUsed} / {meetingsLimit}</span>
               </div>
               <Progress value={usagePercent} className="h-2" />
-              {isPro && subscription?.current_period_end && (
+              {isPaid && subscription?.current_period_end && (
                 <p className="text-xs text-muted-foreground mt-2">
                   <Calendar className="w-3 h-3 inline mr-1" />
                   Resets on {format(new Date(subscription.current_period_end), 'MMM d, yyyy')}
@@ -223,7 +235,7 @@ export default function Settings() {
             </div>
 
             {/* Cancel/Resume Subscription */}
-            {isPro && (
+            {isPaid && (
               <>
                 <Separator className="bg-border/50" />
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

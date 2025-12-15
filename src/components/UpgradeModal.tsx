@@ -7,16 +7,51 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Crown, Check, Zap, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Crown, Check, Zap, Users, Loader2 } from 'lucide-react';
+import type { BillingCycle } from '@/api/subscription';
 
 interface UpgradeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentUsage?: number;
   maxUsage?: number;
-  onUpgrade?: () => void;
+  onUpgrade?: (planId: string, billingCycle: BillingCycle) => void;
   isLoading?: boolean;
 }
+
+const upgradePlans = [
+  {
+    id: 'pro',
+    name: 'Pro',
+    priceMonthly: 1099,
+    priceYearly: 899,
+    features: [
+      '60 hours per month',
+      '120 meetings per month',
+      'HD recording',
+      'Advanced transcription',
+      'Priority support',
+    ],
+    icon: Crown,
+    popular: true,
+  },
+  {
+    id: 'team',
+    name: 'Team',
+    priceMonthly: 2999,
+    priceYearly: 2699,
+    features: [
+      '300 hours per month',
+      '600 meetings per month',
+      'Team collaboration',
+      'Custom branding',
+      'API access',
+    ],
+    icon: Users,
+    popular: false,
+  },
+];
 
 export function UpgradeModal({
   open,
@@ -26,23 +61,26 @@ export function UpgradeModal({
   onUpgrade,
   isLoading = false,
 }: UpgradeModalProps) {
-  const features = [
-    "50 meetings per month",
-    "Unlimited duration",
-    "HD video recording",
-    "Auto transcription",
-    "Priority support",
-    "Advanced analytics",
-  ];
+  const [isYearly, setIsYearly] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState('pro');
+
+  const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
+
+  const handleUpgrade = () => {
+    if (onUpgrade) {
+      const billingCycle: BillingCycle = isYearly ? 'yearly' : 'monthly';
+      onUpgrade(selectedPlan, billingCycle);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-card border-border/50">
+      <DialogContent className="sm:max-w-lg glass-card border-border/50">
         <DialogHeader className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
             <Crown className="w-8 h-8 text-primary" />
           </div>
-          <DialogTitle className="text-2xl">Upgrade to Pro</DialogTitle>
+          <DialogTitle className="text-2xl">Upgrade Your Plan</DialogTitle>
           <DialogDescription className="text-base">
             You've used all {maxUsage} free meetings. Upgrade to continue recording.
           </DialogDescription>
@@ -62,27 +100,68 @@ export function UpgradeModal({
           </div>
         </div>
 
-        {/* Pro plan highlight */}
-        <div className="glass-card rounded-xl p-4 border-primary/30 glow-purple">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-foreground">Pro Plan</span>
-            </div>
-            <div>
-              <span className="text-2xl font-bold text-foreground">₹899</span>
-              <span className="text-muted-foreground">/mo</span>
-            </div>
-          </div>
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <span className={`text-sm ${!isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            Monthly
+          </span>
+          <Switch
+            checked={isYearly}
+            onCheckedChange={setIsYearly}
+            className="data-[state=checked]:bg-primary"
+          />
+          <span className={`text-sm ${isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            Yearly
+          </span>
+          {isYearly && (
+            <span className="bg-green-500/20 text-green-500 text-xs font-semibold px-2 py-1 rounded-full">
+              Save 20%
+            </span>
+          )}
+        </div>
 
-          <ul className="space-y-2 mb-4">
-            {features.map((feature) => (
-              <li key={feature} className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-foreground">{feature}</span>
-              </li>
-            ))}
-          </ul>
+        {/* Plan options */}
+        <div className="space-y-3">
+          {upgradePlans.map((plan) => (
+            <div
+              key={plan.id}
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`glass-card rounded-xl p-4 cursor-pointer transition-all ${
+                selectedPlan === plan.id
+                  ? 'border-primary/50 glow-purple'
+                  : 'border-border/30 hover:border-border/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <plan.icon className={`w-5 h-5 ${selectedPlan === plan.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <span className="font-semibold text-foreground">{plan.name} Plan</span>
+                  {plan.popular && (
+                    <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
+                      Popular
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-bold text-foreground">
+                    {formatPrice(isYearly ? plan.priceYearly : plan.priceMonthly)}
+                  </span>
+                  <span className="text-muted-foreground text-sm">
+                    {isYearly ? '/year' : '/month'}
+                  </span>
+                </div>
+              </div>
+
+              <ul className="grid grid-cols-2 gap-1">
+                {plan.features.slice(0, 4).map((feature) => (
+                  <li key={feature} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Action buttons */}
@@ -91,7 +170,7 @@ export function UpgradeModal({
             variant="hero" 
             size="lg" 
             className="w-full"
-            onClick={onUpgrade}
+            onClick={handleUpgrade}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -102,7 +181,7 @@ export function UpgradeModal({
             ) : (
               <>
                 <Crown className="w-4 h-4 mr-2" />
-                Upgrade Now
+                Upgrade to {upgradePlans.find(p => p.id === selectedPlan)?.name}
               </>
             )}
           </Button>

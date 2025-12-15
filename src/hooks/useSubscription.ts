@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { subscriptionApi, RazorpayCheckoutResponse } from '@/api/subscription';
+import { subscriptionApi, RazorpayCheckoutResponse, BillingCycle } from '@/api/subscription';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -94,13 +94,19 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
+// Checkout params
+export interface CheckoutParams {
+  planId: string;
+  billingCycle: BillingCycle;
+}
+
 // Create checkout session and open Razorpay
 export function useCreateCheckout() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (planId: string) => {
+    mutationFn: async ({ planId, billingCycle }: CheckoutParams) => {
       // Load Razorpay script first
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
@@ -108,10 +114,17 @@ export function useCreateCheckout() {
       }
 
       // Create checkout session
-      const checkoutData = await subscriptionApi.createCheckout(planId);
-      return checkoutData;
+      const checkoutData = await subscriptionApi.createCheckout(planId, billingCycle);
+      return { checkoutData, planId, billingCycle };
     },
-    onSuccess: (checkoutData: RazorpayCheckoutResponse) => {
+    onSuccess: ({ checkoutData, planId, billingCycle }) => {
+      // Build description based on plan and billing cycle
+      const planNames: Record<string, string> = { pro: 'Pro', team: 'Team' };
+      const planName = planNames[planId] || planId;
+      const priceDisplay = `₹${(checkoutData.amount / 100).toLocaleString('en-IN')}`;
+      const cycleDisplay = billingCycle === 'yearly' ? '/year' : '/month';
+      const description = `${planName} Plan - ${priceDisplay}${cycleDisplay}`;
+
       // Open Razorpay checkout modal
       const options: RazorpayOptions = {
         key: checkoutData.key_id,
@@ -119,23 +132,31 @@ export function useCreateCheckout() {
         currency: checkoutData.currency,
         order_id: checkoutData.order_id,
         name: 'Skriber',
-        description: 'Pro Plan - ₹899/month',
+        description,
         image: '/logo.png',
         handler: async (response: RazorpayResponse) => {
           // Payment successful
           console.log('Payment successful:', response);
           toast.success('Payment successful! Upgrading your account...');
           
-          // Refresh subscription data
+          // Refresh subscription data immediately
           await queryClient.invalidateQueries({ queryKey: subscriptionKeys.current() });
           await queryClient.invalidateQueries({ queryKey: subscriptionKeys.usage() });
           
-          // Small delay for webhook processing
+          // Webhook processing can take a few seconds - retry refresh multiple times
+          const refreshSubscription = async () => {
+            await queryClient.invalidateQueries({ queryKey: subscriptionKeys.current() });
+            await queryClient.invalidateQueries({ queryKey: subscriptionKeys.usage() });
+          };
+
+          // Retry at 2s, 4s, then reload at 6s to ensure fresh data
+          setTimeout(refreshSubscription, 2000);
+          setTimeout(refreshSubscription, 4000);
           setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: subscriptionKeys.current() });
-            queryClient.invalidateQueries({ queryKey: subscriptionKeys.usage() });
-            toast.success('You now have Pro access! Enjoy 50 meetings/month.');
-          }, 2000);
+            toast.success('Subscription activated! Enjoy your new plan.');
+            // Force page reload to ensure all data is fresh
+            window.location.reload();
+          }, 6000);
         },
         prefill: {
           email: user?.email || '',

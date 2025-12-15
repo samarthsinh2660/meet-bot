@@ -1,20 +1,24 @@
 import { apiClient } from './client';
 
+// Billing cycle type
+export type BillingCycle = 'monthly' | 'yearly';
+
 // Subscription types
 export interface SubscriptionPlan {
-  id: string; // "free" or "pro"
+  id: string; // "free", "pro", or "team"
   name: string;
-  price: number; // in INR (rupees, not paise)
+  price_monthly: number; // in INR (rupees, not paise)
+  price_yearly: number; // in INR (rupees, not paise)
   currency: string;
   meetings_limit: number;
-  duration_limit: number | null; // null = unlimited
+  hours_limit: number;
   features: string[];
 }
 
 export interface UserSubscription {
   id: string;
   user_id: string;
-  plan_id: string; // "free" or "pro"
+  plan_id: string; // "free", "pro", or "team"
   plan_name: string;
   status: 'active' | 'cancelled' | 'expired' | 'trial';
   meetings_used: number;
@@ -28,7 +32,7 @@ export interface UsageStats {
   meetings_used: number;
   meetings_limit: number;
   meetings_remaining: number;
-  plan_name: string; // "free" or "pro"
+  plan_name: string; // "free", "pro", or "team"
   is_trial: boolean;
   can_record: boolean;
 }
@@ -43,9 +47,9 @@ export interface RazorpayCheckoutResponse {
 
 export interface PaymentHistory {
   id: string;
-  amount: number; // in rupees
+  amount: number; // in paise
   currency: string;
-  status: 'succeeded' | 'pending' | 'failed';
+  status: 'success' | 'pending' | 'failed';
   created_at: string;
   invoice_url: string | null;
 }
@@ -88,9 +92,10 @@ export const subscriptionApi = {
   },
 
   // Create checkout session (returns Razorpay order details)
-  createCheckout: async (planId: string): Promise<RazorpayCheckoutResponse> => {
+  createCheckout: async (planId: string, billingCycle: BillingCycle): Promise<RazorpayCheckoutResponse> => {
     const response = await apiClient.post('/api/v1/subscriptions/checkout', {
       plan_id: planId,
+      billing_cycle: billingCycle,
     });
     return response.data;
   },

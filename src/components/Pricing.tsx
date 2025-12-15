@@ -1,25 +1,27 @@
-import { Check, Zap, Crown, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Check, Zap, Crown, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { isAuthenticated } from "@/api/client";
 import { useCreateCheckout } from "@/hooks/useSubscription";
+import type { BillingCycle } from "@/api/subscription";
 
 const plans = [
   {
     id: "free",
     name: "Free Trial",
-    price: "₹0",
-    period: "forever",
+    priceMonthly: 0,
+    priceYearly: 0,
     description: "Perfect for trying out Skriber",
     features: [
-      "5 meetings included",
-      "HD video recording",
-      "Auto transcription",
-      "Cloud storage",
-      "Basic support",
+      "2 hours per month",
+      "5 meetings per month",
+      "Basic recording",
+      "Email support",
     ],
     limitations: [
-      "Limited to 5 meetings total",
+      "Limited to 5 meetings",
     ],
     cta: "Start Free",
     ctaLink: "/auth/register",
@@ -29,18 +31,17 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    price: "₹899",
-    period: "/month",
-    description: "For professionals and teams",
+    priceMonthly: 1099,
+    priceYearly: 899,
+    description: "For professionals",
     features: [
-      "50 meetings per month",
-      "Unlimited duration",
-      "HD video recording",
-      "Auto transcription",
-      "Priority cloud storage",
+      "60 hours per month",
+      "120 meetings per month",
+      "HD recording",
+      "Advanced transcription",
+      "Calendar integration",
       "Priority support",
-      "Advanced analytics",
-      "Team collaboration",
+      "Export recordings",
     ],
     limitations: [],
     cta: "Upgrade to Pro",
@@ -48,16 +49,46 @@ const plans = [
     popular: true,
     icon: Crown,
   },
+  {
+    id: "team",
+    name: "Team",
+    priceMonthly: 2999,
+    priceYearly: 2699,
+    description: "For growing teams",
+    features: [
+      "300 hours per month",
+      "600 meetings per month",
+      "HD recording",
+      "Advanced transcription",
+      "Calendar integration",
+      "Priority support",
+      "Export recordings",
+      "Team collaboration",
+      "Custom branding",
+      "API access",
+    ],
+    limitations: [],
+    cta: "Upgrade to Team",
+    ctaLink: "/auth/register",
+    popular: false,
+    icon: Users,
+  },
 ];
 
 const Pricing = () => {
+  const [isYearly, setIsYearly] = useState(true);
   const createCheckout = useCreateCheckout();
   const authenticated = isAuthenticated();
 
   const handleUpgrade = (planId: string) => {
-    if (planId === "pro") {
-      createCheckout.mutate(planId);
+    if (planId !== "free") {
+      const billingCycle: BillingCycle = isYearly ? "yearly" : "monthly";
+      createCheckout.mutate({ planId, billingCycle });
     }
+  };
+
+  const formatPrice = (price: number) => {
+    return `₹${price.toLocaleString("en-IN")}`;
   };
   return (
     <section id="pricing" className="py-16 sm:py-24 relative">
@@ -73,9 +104,29 @@ const Pricing = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Start free and upgrade when you need more. No hidden fees, cancel anytime.
           </p>
+
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Monthly
+            </span>
+            <Switch
+              checked={isYearly}
+              onCheckedChange={setIsYearly}
+              className="data-[state=checked]:bg-primary"
+            />
+            <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly
+            </span>
+            {isYearly && (
+              <span className="bg-green-500/20 text-green-500 text-xs font-semibold px-2 py-1 rounded-full">
+                Save 20%
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
             <div
               key={plan.name}
@@ -107,8 +158,19 @@ const Pricing = () => {
               </div>
 
               <div className="mb-6">
-                <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                <span className="text-muted-foreground">{plan.period}</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-foreground">
+                    {formatPrice(isYearly ? plan.priceYearly : plan.priceMonthly)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {plan.id === "free" ? "" : isYearly ? "/year" : "/month"}
+                  </span>
+                </div>
+                {plan.id !== "free" && isYearly && (
+                  <p className="text-xs text-green-500 mt-1">
+                    Save ₹{((plan.priceMonthly * 12) - plan.priceYearly).toLocaleString("en-IN")}/year
+                  </p>
+                )}
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -132,9 +194,9 @@ const Pricing = () => {
                 ))}
               </ul>
 
-              {authenticated && plan.id === "pro" ? (
+              {authenticated && plan.id !== "free" ? (
                 <Button 
-                  variant="hero"
+                  variant={plan.popular ? "hero" : "outline"}
                   className="w-full"
                   size="lg"
                   onClick={() => handleUpgrade(plan.id)}

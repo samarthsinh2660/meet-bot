@@ -22,6 +22,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { UsageBanner } from '@/components/UsageBanner';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { useUsage, useCreateCheckout } from '@/hooks/useSubscription';
+import type { BillingCycle } from '@/api/subscription';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -40,8 +41,8 @@ export default function Dashboard() {
   const planName = usage?.plan_name ?? 'free';
   const canRecord = usage?.can_record ?? (currentUsage < maxUsage);
 
-  const handleUpgrade = () => {
-    createCheckout.mutate('pro');
+  const handleUpgrade = (planId: string, billingCycle: BillingCycle) => {
+    createCheckout.mutate({ planId, billingCycle });
   };
 
   // Get recent recordings (last 5)
