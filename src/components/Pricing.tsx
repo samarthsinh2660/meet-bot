@@ -64,8 +64,6 @@ const plans = [
       "Priority support",
       "Export recordings",
       "Team collaboration",
-      "Custom branding",
-      "API access",
     ],
     limitations: [],
     cta: "Upgrade to Team",
@@ -182,16 +180,6 @@ const Pricing = () => {
                     {plan.id === "free" ? "" : "/mo"}
                   </span>
                 </div>
-                {plan.id !== "free" && isYearly && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Billed {formatPrice(plan.priceYearly * 12)}/year
-                  </p>
-                )}
-                {plan.id !== "free" && isYearly && getSavings(plan) && (
-                  <p className="text-xs text-green-500 mt-1">
-                    Save {formatPrice(getSavings(plan)!.savingsAnnual)}/year ({getSavings(plan)!.discountPercent}% off)
-                  </p>
-                )}
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">

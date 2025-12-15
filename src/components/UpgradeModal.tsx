@@ -45,8 +45,6 @@ const upgradePlans = [
       '300 hours per month',
       '600 meetings per month',
       'Team collaboration',
-      'Custom branding',
-      'API access',
     ],
     icon: Users,
     popular: false,
