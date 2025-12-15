@@ -56,10 +56,14 @@ export default function Settings() {
   const usagePercent = Math.min((meetingsUsed / meetingsLimit) * 100, 100);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('yearly');
 
+  const proMonthly = 1099;
+  const proYearly = 899;
+  const proDiscountPercent = Math.round(((proMonthly * 12 - proYearly * 12) / (proMonthly * 12)) * 100);
+
   // Plan display info
   const getPlanInfo = () => {
-    if (isTeam) return { name: 'Team Plan', price: '₹2,699/year', meetings: '600 meetings/month', icon: Users };
-    if (isPro) return { name: 'Pro Plan', price: '₹899/year', meetings: '120 meetings/month', icon: Crown };
+    if (isTeam) return { name: 'Team Plan', price: '₹2,699/mo', meetings: '600 meetings/month', icon: Users };
+    if (isPro) return { name: 'Pro Plan', price: '₹899/mo', meetings: '120 meetings/month', icon: Crown };
     return { name: 'Free Trial', price: 'Free', meetings: '5 meetings total', icon: Zap };
   };
   const planInfo = getPlanInfo();
@@ -184,29 +188,50 @@ export default function Settings() {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {planInfo.price} • {planInfo.meetings}
+                    {planInfo.price}{!isPaid ? (billingCycle === 'yearly' ? ' (billed yearly)' : '') : ''} • {planInfo.meetings}
                   </p>
                 </div>
               </div>
               {!isPaid ? (
-                <Button 
-                  variant="hero" 
-                  onClick={() => createCheckout.mutate({ planId: 'pro', billingCycle })}
-                  disabled={createCheckout.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {createCheckout.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Pro
-                    </>
-                  )}
-                </Button>
+                <div className="w-full sm:w-auto space-y-3">
+                  <div className="flex items-center justify-center sm:justify-end gap-3">
+                    <span className={`text-xs ${billingCycle === 'monthly' ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                      Monthly
+                    </span>
+                    <Switch
+                      checked={billingCycle === 'yearly'}
+                      onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                    <span className={`text-xs ${billingCycle === 'yearly' ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                      Yearly
+                    </span>
+                    {billingCycle === 'yearly' && (
+                      <span className="bg-green-500/20 text-green-500 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                        Save {proDiscountPercent}%
+                      </span>
+                    )}
+                  </div>
+
+                  <Button 
+                    variant="hero" 
+                    onClick={() => createCheckout.mutate({ planId: 'pro', billingCycle })}
+                    disabled={createCheckout.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {createCheckout.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="w-4 h-4 mr-2" />
+                        Upgrade to Pro
+                      </>
+                    )}
+                  </Button>
+                </div>
               ) : (
                 <Button 
                   variant="outline" 

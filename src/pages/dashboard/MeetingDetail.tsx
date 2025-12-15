@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRecording, useDeleteRecording, useTranscript } from '@/hooks/useMeetings';
+import { useRecording, useDeleteRecording, useTranscript, useStartTranscription } from '@/hooks/useMeetings';
 import { MEETING_STATUS_COLORS } from '@/api/types';
 import {
   ArrowLeft,
@@ -25,11 +25,12 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
-// Helper to format seconds to MM:SS
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+// Helper to format milliseconds to M:SS
+const formatTime = (milliseconds: number) => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 export default function RecordingDetail() {
@@ -38,6 +39,7 @@ export default function RecordingDetail() {
   const { data: recording, isLoading } = useRecording(id || '');
   const { data: transcriptData } = useTranscript(id || '');
   const deleteRecording = useDeleteRecording();
+  const startTranscription = useStartTranscription();
   
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [copied, setCopied] = useState(false);
@@ -61,13 +63,12 @@ export default function RecordingDetail() {
 
   // Filter transcript segments by search
   const filteredTranscript = useMemo(() => {
-    if (!transcriptData?.transcript) return [];
-    if (!transcriptSearch) return transcriptData.transcript;
-    
-    return transcriptData.transcript.filter(segment =>
-      segment.text.toLowerCase().includes(transcriptSearch.toLowerCase()) ||
-      segment.speaker.toLowerCase().includes(transcriptSearch.toLowerCase())
-    );
+    const segments = transcriptData?.status === 'ready' ? transcriptData.transcript.segments : [];
+    if (!segments.length) return [];
+    if (!transcriptSearch) return segments;
+
+    const lower = transcriptSearch.toLowerCase();
+    return segments.filter((segment) => segment.text.toLowerCase().includes(lower));
   }, [transcriptData, transcriptSearch]);
 
   if (isLoading) {
@@ -104,7 +105,7 @@ export default function RecordingDetail() {
   const isReady = status === 'completed' || status === 'ready';
   const isProcessing = ['processing', 'pending', 'recording'].includes(status);
   const hasVideo = !!recording.video_url;
-  const hasTranscript = !!(transcriptData?.transcript?.length) || !!(recording.transcript?.segments?.length);
+  const hasTranscript = transcriptData?.status === 'ready' ? transcriptData.transcript.segments.length > 0 : false;
 
   const displayTitle = recording.meeting_title || `Recording ${recording.id.slice(0, 8)}...`;
 
@@ -298,10 +299,9 @@ export default function RecordingDetail() {
                           {filteredTranscript.map((segment, index) => (
                             <div key={index} className="flex gap-3">
                               <span className="text-xs text-primary font-mono shrink-0">
-                                {formatTime(segment.start_time)}
+                                {formatTime(segment.start_ms)}
                               </span>
                               <div>
-                                <p className="text-xs font-medium text-foreground">{segment.speaker}</p>
                                 <p className="text-sm text-muted-foreground">{segment.text}</p>
                               </div>
                             </div>
@@ -312,13 +312,34 @@ export default function RecordingDetail() {
                           <Search className="w-12 h-12 text-muted-foreground/50 mb-3" />
                           <p className="text-muted-foreground">No matches found</p>
                         </div>
-                      ) : (
+                      ) : transcriptData?.status === 'not_available' ? (
                         <div className="flex flex-col items-center justify-center h-full py-8">
                           <FileText className="w-12 h-12 text-muted-foreground/50 mb-3" />
                           <p className="text-muted-foreground font-medium">No Transcript Available</p>
                           <p className="text-sm text-muted-foreground/70 mt-1">
-                            Transcript was not generated for this recording
+                            {transcriptData.message || 'Transcript was not generated for this recording'}
                           </p>
+                          <Button
+                            className="mt-4"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => id && startTranscription.mutate(id)}
+                            disabled={!id || startTranscription.isPending}
+                          >
+                            {startTranscription.isPending ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Starting...
+                              </>
+                            ) : (
+                              'Generate transcript'
+                            )}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full py-8">
+                          <Loader2 className="w-12 h-12 text-muted-foreground/50 mb-3 animate-spin" />
+                          <p className="text-muted-foreground font-medium">Loading transcript...</p>
                         </div>
                       )}
                     </div>

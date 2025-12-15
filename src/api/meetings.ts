@@ -7,6 +7,7 @@ import type {
   RecordingDetail,
   RecordingStats,
   TranscriptResponse,
+  StartTranscriptionResponse,
   DeleteRecordingResponse,
   RecordingsFilterParams,
 } from './types';
@@ -91,6 +92,14 @@ export const recordingsApi = {
   getTranscript: async (recordingId: string): Promise<TranscriptResponse> => {
     const response = await apiClient.get<TranscriptResponse>(
       `/api/v1/transcripts/${recordingId}`
+    );
+    return response.data;
+  },
+
+  // Manually start transcription for a recording
+  startTranscription: async (recordingId: string): Promise<StartTranscriptionResponse> => {
+    const response = await apiClient.post<StartTranscriptionResponse>(
+      `/api/v1/transcripts/${recordingId}/start`
     );
     return response.data;
   },

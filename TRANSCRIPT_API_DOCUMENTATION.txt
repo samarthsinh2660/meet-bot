@@ -1,0 +1,687 @@
+================================================================================
+TRANSCRIPT API DOCUMENTATION FOR FRONTEND
+================================================================================
+Complete API reference for transcript functionality
+Base URL: https://api.skriber.in/api/v1
+Last Updated: December 15, 2025
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. Get Transcript
+2. Start Transcription (Manual)
+3. Check Transcript Status
+4. Error Codes
+5. Complete Examples
+6. Frontend Integration
+
+================================================================================
+1. GET TRANSCRIPT
+================================================================================
+
+Endpoint: GET /transcripts/{recording_id}
+Auth: Required (Bearer token)
+
+Description:
+Fetches the transcript for a specific recording. Transcripts are automatically
+generated when recordings complete. This endpoint returns the full transcript
+with timestamps.
+
+Request:
+--------
+GET https://api.skriber.in/api/v1/transcripts/{recording_id}
+Headers:
+  Authorization: Bearer <access_token>
+
+Path Parameters:
+- recording_id: UUID of the recording (required)
+
+Response 1: Transcript Ready
+----------------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "status": "ready",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "transcript": {
+    "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+    "meeting_url": "https://meet.google.com/wgc-pvcg-nks",
+    "duration_ms": 180000,
+    "language": "en",
+    "segments": [
+      {
+        "start_ms": 0,
+        "end_ms": 5420,
+        "text": "Hello everyone, welcome to today's meeting."
+      },
+      {
+        "start_ms": 5420,
+        "end_ms": 12800,
+        "text": "Today we'll be discussing the Q4 roadmap and our key priorities."
+      },
+      {
+        "start_ms": 12800,
+        "end_ms": 18500,
+        "text": "Let's start with the product updates from the engineering team."
+      },
+      {
+        "start_ms": 18500,
+        "end_ms": 25300,
+        "text": "We've made significant progress on the new dashboard feature."
+      },
+      {
+        "start_ms": 25300,
+        "end_ms": 32100,
+        "text": "The beta version will be ready for testing by next week."
+      }
+    ],
+    "generated_at": "2025-12-15T10:30:00Z",
+    "provider": "assemblyai",
+    "confidence": 0.94
+  }
+}
+
+Field Descriptions:
+- status: "ready" (transcript is available)
+- recording_id: UUID of the recording
+- transcript: Object containing transcript data
+  - recording_id: Same as parent recording_id
+  - meeting_url: Google Meet URL
+  - duration_ms: Total duration in milliseconds
+  - language: Detected language code (e.g., "en", "hi", "es")
+  - segments: Array of transcript segments
+    - start_ms: Segment start time in milliseconds
+    - end_ms: Segment end time in milliseconds
+    - text: Transcribed text for this segment
+  - generated_at: ISO 8601 timestamp when transcript was created
+  - provider: "assemblyai" (transcription provider)
+  - confidence: 0.0-1.0 (overall transcription confidence score)
+
+Response 2: Transcript Not Available
+-------------------------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "status": "not_available",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "message": "Transcript not available for this recording"
+}
+
+Field Descriptions:
+- status: "not_available" (no transcript exists)
+- recording_id: UUID of the recording
+- message: Human-readable explanation
+
+Response 3: Transcript File Not Found
+--------------------------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "status": "not_available",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "message": "Transcript file not found"
+}
+
+Error Response 1: Recording Not Found
+--------------------------------------
+Status: 404 Not Found
+Content-Type: application/json
+
+{
+  "detail": "Recording not found"
+}
+
+Error Response 2: Unauthorized
+-------------------------------
+Status: 401 Unauthorized
+Content-Type: application/json
+
+{
+  "detail": "Not authenticated"
+}
+
+Error Response 3: Server Error
+-------------------------------
+Status: 500 Internal Server Error
+Content-Type: application/json
+
+{
+  "detail": "Failed to fetch transcript"
+}
+
+================================================================================
+2. START TRANSCRIPTION (MANUAL)
+================================================================================
+
+Endpoint: POST /transcripts/{recording_id}/start
+Auth: Required (Bearer token)
+
+Description:
+Manually triggers transcription for a recording. Normally, transcription
+starts automatically when a recording completes. Use this endpoint only if:
+- Automatic transcription failed
+- You want to regenerate a transcript
+- Recording was completed before auto-transcription was enabled
+
+Request:
+--------
+POST https://api.skriber.in/api/v1/transcripts/{recording_id}/start
+Headers:
+  Authorization: Bearer <access_token>
+
+Path Parameters:
+- recording_id: UUID of the recording (required)
+
+Response 1: Transcription Queued
+---------------------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "status": "queued",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa"
+}
+
+Field Descriptions:
+- status: "queued" (transcription has been started)
+- recording_id: UUID of the recording
+
+Response 2: Already Completed
+------------------------------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "status": "completed",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "transcript_uri": "gs://skriber-recordings/users/xxx/recordings/xxx.transcript.json"
+}
+
+Field Descriptions:
+- status: "completed" (transcript already exists)
+- recording_id: UUID of the recording
+- transcript_uri: GCS URI of the transcript file
+
+Error Response: Recording Not Found
+------------------------------------
+Status: 404 Not Found
+Content-Type: application/json
+
+{
+  "detail": "Recording not found"
+}
+
+================================================================================
+3. CHECK TRANSCRIPT STATUS
+================================================================================
+
+Use the main recordings endpoint to check if a transcript is available:
+
+Endpoint: GET /recordings/{recording_id}
+Auth: Required (Bearer token)
+
+Request:
+--------
+GET https://api.skriber.in/api/v1/recordings/{recording_id}
+Headers:
+  Authorization: Bearer <access_token>
+
+Response:
+---------
+Status: 200 OK
+Content-Type: application/json
+
+{
+  "id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "meeting_url": "https://meet.google.com/wgc-pvcg-nks",
+  "meeting_title": "Q4 Planning Meeting",
+  "duration_minutes": 45,
+  "duration_seconds": 2700,
+  "video_url": "https://storage.googleapis.com/...",
+  "gcs_video_uri": "gs://skriber-recordings/...",
+  "status": "ready",
+  "created_at": "2025-12-15T10:00:00Z",
+  "ended_at": "2025-12-15T10:45:00Z",
+  "transcript": {
+    "id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+    "status": "completed",
+    "uri": "gs://skriber-recordings/users/xxx/recordings/xxx.transcript.json",
+    "url": "https://storage.googleapis.com/...",
+    "data": {
+      "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+      "meeting_url": "https://meet.google.com/wgc-pvcg-nks",
+      "duration_ms": 180000,
+      "language": "en",
+      "segments": [...],
+      "generated_at": "2025-12-15T10:30:00Z",
+      "provider": "assemblyai",
+      "confidence": 0.94
+    }
+  }
+}
+
+Field Descriptions:
+- transcript: Object containing transcript info (null if not available)
+  - id: Recording ID
+  - status: "completed" (transcript is ready)
+  - uri: GCS URI of transcript file
+  - url: Signed URL for downloading transcript
+  - data: Full transcript data (same format as GET /transcripts endpoint)
+
+If No Transcript:
+-----------------
+{
+  ...
+  "transcript": {
+    "id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+    "status": "not_available",
+    "message": "Transcript not generated for this recording"
+  }
+}
+
+================================================================================
+4. ERROR CODES
+================================================================================
+
+HTTP Status Codes:
+------------------
+200 OK - Request successful
+401 Unauthorized - Missing or invalid token
+404 Not Found - Recording not found
+500 Internal Server Error - Server error
+
+Application Error Codes:
+------------------------
+status: "ready" - Transcript is available
+status: "not_available" - Transcript doesn't exist
+status: "queued" - Transcription is starting
+status: "completed" - Transcript already exists
+status: "error" - Transcription failed
+
+Common Error Messages:
+----------------------
+"Recording not found" - Invalid recording_id
+"Transcript not available for this recording" - No transcript exists
+"Transcript file not found" - Transcript was deleted or corrupted
+"Failed to fetch transcript" - Server error loading transcript
+"Not authenticated" - Missing or invalid auth token
+
+================================================================================
+5. COMPLETE EXAMPLES
+================================================================================
+
+Example 1: Fetch Transcript for Display
+----------------------------------------
+
+Request:
+GET https://api.skriber.in/api/v1/transcripts/43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Response:
+{
+  "status": "ready",
+  "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+  "transcript": {
+    "recording_id": "43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa",
+    "meeting_url": "https://meet.google.com/wgc-pvcg-nks",
+    "duration_ms": 180000,
+    "language": "en",
+    "segments": [
+      {
+        "start_ms": 0,
+        "end_ms": 5420,
+        "text": "Hello everyone, welcome to today's meeting."
+      },
+      {
+        "start_ms": 5420,
+        "end_ms": 12800,
+        "text": "Today we'll be discussing the Q4 roadmap."
+      }
+    ],
+    "generated_at": "2025-12-15T10:30:00Z",
+    "provider": "assemblyai",
+    "confidence": 0.94
+  }
+}
+
+Example 2: Transcript Not Available
+------------------------------------
+
+Request:
+GET https://api.skriber.in/api/v1/transcripts/3dddd2b9-d60b-4923-954d-d5e676770fb8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Response:
+{
+  "status": "not_available",
+  "recording_id": "3dddd2b9-d60b-4923-954d-d5e676770fb8",
+  "message": "Transcript not available for this recording"
+}
+
+Example 3: Manually Start Transcription
+----------------------------------------
+
+Request:
+POST https://api.skriber.in/api/v1/transcripts/3dddd2b9-d60b-4923-954d-d5e676770fb8/start
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Response:
+{
+  "status": "queued",
+  "recording_id": "3dddd2b9-d60b-4923-954d-d5e676770fb8"
+}
+
+Example 4: Recording Not Found
+-------------------------------
+
+Request:
+GET https://api.skriber.in/api/v1/transcripts/invalid-id-12345
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Response:
+Status: 404 Not Found
+{
+  "detail": "Recording not found"
+}
+
+Example 5: Unauthorized Access
+-------------------------------
+
+Request:
+GET https://api.skriber.in/api/v1/transcripts/43db40ba-b8e9-4c59-85ce-d4b4bba8d7aa
+(No Authorization header)
+
+Response:
+Status: 401 Unauthorized
+{
+  "detail": "Not authenticated"
+}
+
+================================================================================
+6. FRONTEND INTEGRATION
+================================================================================
+
+JavaScript/React Example:
+-------------------------
+
+// Fetch transcript
+const fetchTranscript = async (recordingId, accessToken) => {
+  try {
+    const response = await fetch(
+      `https://api.skriber.in/api/v1/transcripts/${recordingId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Recording not found');
+      }
+      throw new Error('Failed to fetch transcript');
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'ready') {
+      return data.transcript;
+    } else if (data.status === 'not_available') {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching transcript:', error);
+    throw error;
+  }
+};
+
+// Usage
+const transcript = await fetchTranscript(recordingId, accessToken);
+
+if (transcript) {
+  // Display transcript
+  transcript.segments.forEach(segment => {
+    console.log(`[${segment.start_ms}ms] ${segment.text}`);
+  });
+} else {
+  // Show "Transcript not available"
+  console.log('No transcript available');
+}
+
+Manually Start Transcription:
+------------------------------
+
+const startTranscription = async (recordingId, accessToken) => {
+  try {
+    const response = await fetch(
+      `https://api.skriber.in/api/v1/transcripts/${recordingId}/start`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to start transcription');
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'queued') {
+      console.log('Transcription started, check back in a few minutes');
+    } else if (data.status === 'completed') {
+      console.log('Transcript already exists');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error starting transcription:', error);
+    throw error;
+  }
+};
+
+Check if Transcript Exists:
+---------------------------
+
+const hasTranscript = async (recordingId, accessToken) => {
+  try {
+    const response = await fetch(
+      `https://api.skriber.in/api/v1/recordings/${recordingId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+    
+    const recording = await response.json();
+    
+    return recording.transcript && 
+           recording.transcript.status === 'completed';
+  } catch (error) {
+    return false;
+  }
+};
+
+Format Timestamp:
+-----------------
+
+const formatTime = (milliseconds) => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// Usage
+console.log(formatTime(5420)); // "0:05"
+console.log(formatTime(125000)); // "2:05"
+
+Display Transcript:
+-------------------
+
+const TranscriptDisplay = ({ transcript }) => {
+  return (
+    <div className="transcript">
+      <div className="transcript-header">
+        <span>Language: {transcript.language.toUpperCase()}</span>
+        <span>Duration: {formatTime(transcript.duration_ms)}</span>
+        <span>Confidence: {(transcript.confidence * 100).toFixed(0)}%</span>
+      </div>
+      
+      <div className="transcript-segments">
+        {transcript.segments.map((segment, index) => (
+          <div key={index} className="segment">
+            <span className="timestamp">
+              {formatTime(segment.start_ms)}
+            </span>
+            <p className="text">{segment.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+================================================================================
+TIMING INFORMATION
+================================================================================
+
+Transcription Processing Time:
+-------------------------------
+- Typical: 15-30% of audio duration
+- Example: 1 hour recording = 9-18 minutes processing
+- Example: 30 min recording = 4.5-9 minutes processing
+
+When to Check for Transcript:
+------------------------------
+1. Immediately after recording completes (might not be ready)
+2. Wait 5-10 minutes, then check again
+3. Poll every 2-3 minutes until available
+4. Show "Generating transcript..." message while waiting
+
+Automatic Transcription:
+------------------------
+- Starts automatically when recording completes
+- No manual trigger needed
+- Runs in background
+- User can view recording while transcription processes
+
+================================================================================
+BEST PRACTICES
+================================================================================
+
+1. Lazy Loading:
+   - Only fetch transcript when user clicks "Show Transcript"
+   - Don't load all transcripts on page load
+
+2. Caching:
+   - Cache transcript in component state
+   - Don't refetch if already loaded
+
+3. Error Handling:
+   - Handle 404 (recording not found)
+   - Handle 401 (unauthorized)
+   - Handle network errors
+   - Show user-friendly messages
+
+4. Loading States:
+   - Show spinner while fetching
+   - Show "Generating..." if not ready
+   - Show "Not available" if doesn't exist
+
+5. Performance:
+   - Virtualize long transcripts
+   - Implement search/filter
+   - Add pagination for very long meetings
+
+6. User Experience:
+   - Show confidence score
+   - Allow download as text
+   - Enable copy to clipboard
+   - Add search functionality
+   - Link timestamps to video
+
+================================================================================
+RESPONSE TIME
+================================================================================
+
+Typical Response Times:
+-----------------------
+GET /transcripts/{id}: < 500ms (transcript is pre-generated)
+POST /transcripts/{id}/start: < 200ms (just queues the job)
+GET /recordings/{id}: < 300ms (includes transcript check)
+
+Network Considerations:
+-----------------------
+- Transcripts are typically 1-10 KB
+- Large meetings (2+ hours) may have 50-100 KB transcripts
+- Use compression (gzip) for large transcripts
+- Consider pagination for very long transcripts
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+□ Test with recording that has transcript
+□ Test with recording without transcript
+□ Test with invalid recording ID
+□ Test without auth token
+□ Test with expired token
+□ Test network error handling
+□ Test very long transcripts (2+ hours)
+□ Test different languages
+□ Test manual transcription trigger
+□ Test polling for transcript availability
+
+================================================================================
+SUMMARY
+================================================================================
+
+Main Endpoints:
+---------------
+1. GET /transcripts/{recording_id} - Fetch transcript
+2. POST /transcripts/{recording_id}/start - Start transcription manually
+3. GET /recordings/{recording_id} - Check if transcript exists
+
+Key Points:
+-----------
+✅ Transcripts are automatically generated
+✅ Use GET /transcripts/{id} to fetch
+✅ Check status field for availability
+✅ Segments include timestamps
+✅ Confidence score indicates quality
+✅ Language is auto-detected
+✅ Provider is "assemblyai"
+
+Response Format:
+----------------
+{
+  "status": "ready",
+  "recording_id": "...",
+  "transcript": {
+    "segments": [...],
+    "language": "en",
+    "confidence": 0.94,
+    "provider": "assemblyai"
+  }
+}
+
+================================================================================
+SUPPORT
+================================================================================
+
+For issues or questions:
+- API Base URL: https://api.skriber.in/api/v1
+- Documentation: Check other .txt files in this directory
+- Support: support@skriber.in
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

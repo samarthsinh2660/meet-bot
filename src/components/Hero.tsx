@@ -12,12 +12,6 @@ const Hero = () => {
       
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full mb-8 animate-slide-in">
-            <Bot className="w-4 h-4 text-primary" />
-            <span className="text-sm text-muted-foreground">Autonomous Meeting Intelligence</span>
-          </div>
-
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 animate-slide-in tracking-tight" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Be everywhere</span>

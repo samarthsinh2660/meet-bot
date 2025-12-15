@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, X, Link, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { isAuthenticated } from "@/api/client";
 
 const MeetingForm = () => {
+  const navigate = useNavigate();
   const [links, setLinks] = useState<string[]>([""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,13 +39,17 @@ const MeetingForm = () => {
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    toast.success(`${validLinks.length} notetaker(s) dispatched to meetings!`);
-    setLinks([""]);
+
+    if (!isAuthenticated()) {
+      toast.error('Please create an account to deploy notetakers');
+      setIsSubmitting(false);
+      navigate('/auth/register');
+      return;
+    }
+
+    // Do not deploy from landing page. Redirect authenticated users to dashboard flow.
     setIsSubmitting(false);
+    navigate('/dashboard/new-meeting');
   };
 
   return (

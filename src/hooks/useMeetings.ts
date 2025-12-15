@@ -53,6 +53,23 @@ export function useTranscript(recordingId: string) {
   });
 }
 
+// Manually start transcription for a recording
+export function useStartTranscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (recordingId: string) => recordingsApi.startTranscription(recordingId),
+    onSuccess: (_data, recordingId) => {
+      toast.success('Transcription started. It may take a few minutes.');
+      queryClient.invalidateQueries({ queryKey: recordingKeys.transcript(recordingId) });
+      queryClient.invalidateQueries({ queryKey: recordingKeys.detail(recordingId) });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to start transcription');
+    },
+  });
+}
+
 // Get recording stats
 export function useRecordingStats(year?: number, month?: number) {
   return useQuery({

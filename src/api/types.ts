@@ -85,20 +85,46 @@ export interface LaunchedRecording {
 
 // Transcript segment
 export interface TranscriptSegment {
-  speaker: string;
+  start_ms: number;
+  end_ms: number;
   text: string;
-  start_time: number;
-  end_time: number;
 }
 
-// Transcript response
-export interface TranscriptResponse {
-  id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  transcript: TranscriptSegment[];
-  created_at: string;
-  completed_at?: string;
+export interface TranscriptData {
+  recording_id: string;
+  meeting_url: string;
+  duration_ms: number;
+  language: string;
+  segments: TranscriptSegment[];
+  generated_at: string;
+  provider: string;
+  confidence: number;
 }
+
+// Transcript response (GET /transcripts/{recording_id})
+export type TranscriptResponse =
+  | {
+      status: 'ready';
+      recording_id: string;
+      transcript: TranscriptData;
+    }
+  | {
+      status: 'not_available';
+      recording_id: string;
+      message: string;
+    };
+
+// Start transcription response (POST /transcripts/{recording_id}/start)
+export type StartTranscriptionResponse =
+  | {
+      status: 'queued';
+      recording_id: string;
+    }
+  | {
+      status: 'completed';
+      recording_id: string;
+      transcript_uri: string;
+    };
 
 // Recording item in list
 export interface Recording {
@@ -134,7 +160,10 @@ export interface RecordingDetail {
   transcript?: {
     id: string;
     status: string;
-    segments: TranscriptSegment[];
+    uri?: string;
+    url?: string;
+    data?: TranscriptData;
+    message?: string;
   };
 }
 

@@ -66,6 +66,17 @@ export function UpgradeModal({
 
   const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
 
+  const getSavings = (plan: (typeof upgradePlans)[number]) => {
+    const monthlyAnnual = plan.priceMonthly * 12;
+    const yearlyAnnual = plan.priceYearly * 12;
+    const savingsAnnual = monthlyAnnual - yearlyAnnual;
+    const discountPercent = monthlyAnnual > 0 ? Math.round((savingsAnnual / monthlyAnnual) * 100) : 0;
+    return { monthlyAnnual, yearlyAnnual, savingsAnnual, discountPercent };
+  };
+
+  const selectedPlanData = upgradePlans.find((p) => p.id === selectedPlan) ?? upgradePlans[0];
+  const selectedPlanSavings = getSavings(selectedPlanData);
+
   const handleUpgrade = () => {
     if (onUpgrade) {
       const billingCycle: BillingCycle = isYearly ? 'yearly' : 'monthly';
@@ -75,7 +86,7 @@ export function UpgradeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg glass-card border-border/50">
+      <DialogContent className="sm:max-w-lg glass-card border-border/50 max-h-[85vh] overflow-y-auto">
         <DialogHeader className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
             <Crown className="w-8 h-8 text-primary" />
@@ -115,7 +126,7 @@ export function UpgradeModal({
           </span>
           {isYearly && (
             <span className="bg-green-500/20 text-green-500 text-xs font-semibold px-2 py-1 rounded-full">
-              Save 20%
+              Save {selectedPlanSavings.discountPercent}%
             </span>
           )}
         </div>
@@ -147,10 +158,19 @@ export function UpgradeModal({
                     {formatPrice(isYearly ? plan.priceYearly : plan.priceMonthly)}
                   </span>
                   <span className="text-muted-foreground text-sm">
-                    {isYearly ? '/year' : '/month'}
+                    /mo
                   </span>
                 </div>
               </div>
+
+              {isYearly && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <span>Billed {formatPrice(plan.priceYearly * 12)}/year</span>
+                  <span className="text-green-500">
+                    Save {formatPrice(getSavings(plan).savingsAnnual)}/year ({getSavings(plan).discountPercent}% off)
+                  </span>
+                </div>
+              )}
 
               <ul className="grid grid-cols-2 gap-1">
                 {plan.features.slice(0, 4).map((feature) => (

@@ -1,52 +1,36 @@
-import { FileText, Calendar, Users } from "lucide-react";
 import { useState } from "react";
 
 interface Meeting {
   id: string;
   title: string;
-  date: string;
   duration: string;
-  participants: number;
   thumbnail: string;
-  hasTranscript: boolean;
 }
 
 const mockMeetings: Meeting[] = [
   {
     id: "1",
     title: "Product Sprint Planning",
-    date: "Dec 4, 2024",
     duration: "45 min",
-    participants: 8,
     thumbnail: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&h=225&fit=crop",
-    hasTranscript: true,
   },
   {
     id: "2",
     title: "Client Onboarding Call",
-    date: "Dec 3, 2024",
     duration: "32 min",
-    participants: 4,
     thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=225&fit=crop",
-    hasTranscript: true,
   },
   {
     id: "3",
     title: "Weekly Team Standup",
-    date: "Dec 2, 2024",
     duration: "15 min",
-    participants: 12,
     thumbnail: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=225&fit=crop",
-    hasTranscript: true,
   },
   {
     id: "4",
     title: "Design Review Session",
-    date: "Dec 1, 2024",
     duration: "58 min",
-    participants: 6,
     thumbnail: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=225&fit=crop",
-    hasTranscript: false,
   },
 ];
 
@@ -89,24 +73,6 @@ const MeetingsLibrary = () => {
               {/* Content */}
               <div className="p-4">
                 <h3 className="font-semibold text-foreground mb-2 truncate">{meeting.title}</h3>
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {meeting.date}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    {meeting.participants}
-                  </div>
-                </div>
-
-                {meeting.hasTranscript && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <FileText className="w-3 h-3" />
-                    Transcript available
-                  </div>
-                )}
               </div>
             </div>
           ))}

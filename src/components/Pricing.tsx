@@ -90,6 +90,22 @@ const Pricing = () => {
   const formatPrice = (price: number) => {
     return `₹${price.toLocaleString("en-IN")}`;
   };
+
+  const getSavings = (plan: (typeof plans)[number]) => {
+    if (plan.id === 'free') return null;
+    const monthlyAnnual = plan.priceMonthly * 12;
+    const yearlyAnnual = plan.priceYearly * 12;
+    const savingsAnnual = monthlyAnnual - yearlyAnnual;
+    const discountPercent = monthlyAnnual > 0 ? Math.round((savingsAnnual / monthlyAnnual) * 100) : 0;
+    return { monthlyAnnual, yearlyAnnual, savingsAnnual, discountPercent };
+  };
+
+  const maxDiscountPercent = Math.max(
+    0,
+    ...plans
+      .filter((p) => p.id !== 'free')
+      .map((p) => getSavings(p)?.discountPercent ?? 0)
+  );
   return (
     <section id="pricing" className="py-16 sm:py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
@@ -120,7 +136,7 @@ const Pricing = () => {
             </span>
             {isYearly && (
               <span className="bg-green-500/20 text-green-500 text-xs font-semibold px-2 py-1 rounded-full">
-                Save 20%
+                Save up to {maxDiscountPercent}%
               </span>
             )}
           </div>
@@ -130,7 +146,7 @@ const Pricing = () => {
           {plans.map((plan, index) => (
             <div
               key={plan.name}
-              className={`glass-card rounded-2xl p-6 sm:p-8 relative animate-slide-in ${
+              className={`glass-card rounded-2xl p-6 sm:p-8 relative animate-slide-in flex flex-col ${
                 plan.popular 
                   ? 'border-primary/50 glow-purple' 
                   : 'border-border/50'
@@ -163,17 +179,22 @@ const Pricing = () => {
                     {formatPrice(isYearly ? plan.priceYearly : plan.priceMonthly)}
                   </span>
                   <span className="text-muted-foreground">
-                    {plan.id === "free" ? "" : isYearly ? "/year" : "/month"}
+                    {plan.id === "free" ? "" : "/mo"}
                   </span>
                 </div>
                 {plan.id !== "free" && isYearly && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Billed {formatPrice(plan.priceYearly * 12)}/year
+                  </p>
+                )}
+                {plan.id !== "free" && isYearly && getSavings(plan) && (
                   <p className="text-xs text-green-500 mt-1">
-                    Save ₹{((plan.priceMonthly * 12) - plan.priceYearly).toLocaleString("en-IN")}/year
+                    Save {formatPrice(getSavings(plan)!.savingsAnnual)}/year ({getSavings(plan)!.discountPercent}% off)
                   </p>
                 )}
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
@@ -194,34 +215,36 @@ const Pricing = () => {
                 ))}
               </ul>
 
-              {authenticated && plan.id !== "free" ? (
-                <Button 
-                  variant={plan.popular ? "hero" : "outline"}
-                  className="w-full"
-                  size="lg"
-                  onClick={() => handleUpgrade(plan.id)}
-                  disabled={createCheckout.isPending}
-                >
-                  {createCheckout.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    plan.cta
-                  )}
-                </Button>
-              ) : (
-                <Link to={plan.ctaLink} className="block">
+              <div className="mt-auto">
+                {authenticated && plan.id !== "free" ? (
                   <Button 
-                    variant={plan.popular ? "hero" : "outline"} 
+                    variant={plan.popular ? "hero" : "outline"}
                     className="w-full"
                     size="lg"
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={createCheckout.isPending}
                   >
-                    {plan.cta}
+                    {createCheckout.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      plan.cta
+                    )}
                   </Button>
-                </Link>
-              )}
+                ) : (
+                  <Link to={plan.ctaLink} className="block">
+                    <Button 
+                      variant={plan.popular ? "hero" : "outline"} 
+                      className="w-full"
+                      size="lg"
+                    >
+                      {plan.cta}
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           ))}
         </div>
