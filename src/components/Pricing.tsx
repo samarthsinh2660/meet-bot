@@ -35,7 +35,7 @@ const plans = [
     priceYearly: 899,
     description: "For professionals",
     features: [
-      "60 hours per month",
+      "80 hours per month",
       "120 meetings per month",
       "HD recording",
       "Advanced transcription",

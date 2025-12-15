@@ -27,7 +27,7 @@ const upgradePlans = [
     priceMonthly: 1099,
     priceYearly: 899,
     features: [
-      '60 hours per month',
+      '80 hours per month',
       '120 meetings per month',
       'HD recording',
       'Advanced transcription',
