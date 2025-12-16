@@ -21,8 +21,7 @@ const singleMeetingSchema = z.object({
   duration: z
     .coerce
     .number()
-    .min(1, 'Duration must be at least 1 minute')
-    .max(480, 'Duration cannot exceed 8 hours'),
+    .min(1, 'Duration must be at least 1 minute'),
   // Optional meeting title (can be empty)
   title: z.string().optional(),
 });
@@ -42,14 +41,17 @@ export default function NewMeeting() {
   const meetingsUsed = usage?.meetings_used ?? 0;
   const meetingsLimit = usage?.meetings_limit ?? 5;
   const planName = usage?.plan_name ?? 'free';
+  const isPaidPlan = (usage?.plan_name === 'pro' || usage?.plan_name === 'team') && !usage?.is_trial;
+  const maxDurationMinutes = isPaidPlan ? 180 : 120;
+  const clampDuration = (value: number) => Math.min(Math.max(value, 1), maxDurationMinutes);
   
   // Multi-meeting state
   const [meetingUrls, setMeetingUrls] = useState<string[]>(['']);
   const [multiDuration, setMultiDuration] = useState(60);
   const [multiError, setMultiError] = useState<string | null>(null);
 
-  const handleUpgrade = () => {
-    createCheckout.mutate('pro');
+  const handleUpgrade = (planId: string, billingCycle: 'monthly' | 'yearly') => {
+    createCheckout.mutate({ planId, billingCycle });
   };
 
   const {
@@ -66,12 +68,17 @@ export default function NewMeeting() {
   });
 
   const duration = watch('duration');
+  const durationField = register('duration');
 
   const onSubmitSingle = (data: SingleMeetingForm) => {
+    const safeDuration = clampDuration(data.duration);
+    if (safeDuration !== data.duration) {
+      setValue('duration', safeDuration, { shouldValidate: true });
+    }
     launchMeeting.mutate(
       {
         meetingUrl: data.meeting_url,
-        durationMinutes: data.duration,
+        durationMinutes: safeDuration,
         title: data.title || undefined,
       },
       {
@@ -118,11 +125,16 @@ export default function NewMeeting() {
       return;
     }
 
+    const safeDuration = clampDuration(multiDuration);
+    if (safeDuration !== multiDuration) {
+      setMultiDuration(safeDuration);
+    }
+
     launchMultipleMeetings.mutate(
       {
         meetingUrls: validUrls,
         // Still in minutes here; API layer converts to hours
-        durationMinutes: multiDuration,
+        durationMinutes: safeDuration,
       },
       {
         onSuccess: () => {
@@ -137,6 +149,7 @@ export default function NewMeeting() {
     { label: '1 hour', value: 60 },
     { label: '1.5 hours', value: 90 },
     { label: '2 hours', value: 120 },
+    { label: '3 hours', value: 180 },
   ];
 
   return (
@@ -244,13 +257,15 @@ export default function NewMeeting() {
 
                     {/* Quick presets */}
                     <div className="flex flex-wrap gap-2">
-                      {presetDurations.map((preset) => (
+                      {presetDurations
+                        .filter((preset) => preset.value <= maxDurationMinutes)
+                        .map((preset) => (
                         <Button
                           key={preset.value}
                           type="button"
                           variant={duration === preset.value ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => setValue('duration', preset.value)}
+                          onClick={() => setValue('duration', clampDuration(preset.value))}
                           className={duration === preset.value ? 'bg-primary' : ''}
                         >
                           {preset.label}
@@ -264,9 +279,16 @@ export default function NewMeeting() {
                         id="duration"
                         type="number"
                         min={1}
-                        max={480}
+                        max={maxDurationMinutes}
                         className="bg-secondary/50 border-border/50 focus:border-primary w-24"
-                        {...register('duration')}
+                        {...durationField}
+                        onBlur={(e) => {
+                          durationField.onBlur(e);
+                          const raw = Number(e.target.value);
+                          if (Number.isFinite(raw)) {
+                            setValue('duration', clampDuration(raw), { shouldValidate: true });
+                          }
+                        }}
                       />
                       <span className="text-muted-foreground">minutes</span>
                     </div>
@@ -357,13 +379,15 @@ export default function NewMeeting() {
                     </Label>
 
                     <div className="flex flex-wrap gap-2">
-                      {presetDurations.map((preset) => (
+                      {presetDurations
+                        .filter((preset) => preset.value <= maxDurationMinutes)
+                        .map((preset) => (
                         <Button
                           key={preset.value}
                           type="button"
                           variant={multiDuration === preset.value ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => setMultiDuration(preset.value)}
+                          onClick={() => setMultiDuration(clampDuration(preset.value))}
                           className={multiDuration === preset.value ? 'bg-primary' : ''}
                         >
                           {preset.label}
@@ -375,9 +399,15 @@ export default function NewMeeting() {
                       <Input
                         type="number"
                         min={1}
-                        max={480}
+                        max={maxDurationMinutes}
                         value={multiDuration}
                         onChange={(e) => setMultiDuration(Number(e.target.value))}
+                        onBlur={(e) => {
+                          const raw = Number(e.target.value);
+                          if (Number.isFinite(raw)) {
+                            setMultiDuration(clampDuration(raw));
+                          }
+                        }}
                         className="bg-secondary/50 border-border/50 focus:border-primary w-24"
                       />
                       <span className="text-muted-foreground">minutes</span>
